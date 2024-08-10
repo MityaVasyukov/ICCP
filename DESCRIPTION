@@ -1,12 +1,18 @@
 Package: ICCP
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Israeli Cave Climate Project: data and explorative ShinyApp tools
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Mitya Kletzerman
+Maintainer: Mitya Kletzerman <tipa2128506@gmail.com>
+Description: The package contains netcdf data file and scripts operating the data.
+    The climatic data presented comes from 12 caves located in Israel.
+    The climate data (temperature, relative humidity, and dew point) was collected from
+    loggers set in various lighting zones (dark, light, twilight or control) throughout
+    each cave. The measurements were taken by the loggers each hour from 2019-2021,
+    with the measurement date or time spans varrying across the loggers.
+    Shiny application has been designed to visualize and explore the data.
+License:MIT + file LICENSE
 Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
 LazyData: true
 RoxygenNote: 7.3.1

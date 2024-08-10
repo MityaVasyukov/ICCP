@@ -16,5 +16,5 @@ No return, just info
 Functions for checking if netcdf file is available
 }
 \examples{
-check_netcdf_file("israel_caves-2024.nc")
+ check_netcdf_file("israel_caves-2024.nc")
 }
