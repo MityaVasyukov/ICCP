@@ -7,7 +7,7 @@
 #' @export
 #'
 #' @examples
-#' check_netcdf_file("israel_caves-2024.nc")
+#'  check_netcdf_file("israel_caves-2024.nc")
 #' @import RNetCDF
 
 check_netcdf_file <- function(file_name = "israel_caves-2024.nc") {
