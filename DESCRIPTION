@@ -11,10 +11,13 @@ Description: The package contains netcdf data file and scripts operating the dat
     each cave. The measurements were taken by the loggers each hour from 2019-2021,
     with the measurement date or time spans varrying across the loggers.
     Shiny application has been designed to visualize and explore the data.
-License:MIT + file LICENSE
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LazyData: true
 RoxygenNote: 7.3.1
 Imports:
     RNetCDF
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
