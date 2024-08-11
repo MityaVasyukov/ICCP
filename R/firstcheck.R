@@ -1,14 +1,14 @@
 
 #' Functions for checking if netcdf file is available
 #'
-#' @param file_name
+#' @param file_name nc file name you're gonna use
 #'
-#' @return No return, just info
+#' @return True or False
 #' @export
-#'
-#' @examples
-#'  check_netcdf_file("israel_caves-2024.nc")
 #' @import RNetCDF
+#' @examples
+#' filename <- "israel_caves-2024.nc"
+#' check_netcdf_file(filename)
 
 check_netcdf_file <- function(file_name = "israel_caves-2024.nc") {
 
@@ -19,8 +19,10 @@ check_netcdf_file <- function(file_name = "israel_caves-2024.nc") {
   # Check if the file opened successfully
   if (!is.null(nc)) {
     cat("netcdf is ok\n")
+    return(TRUE)
     RNetCDF::close.nc(nc)
   } else {
+    return(FALSE)
     stop("Failed to open netcdf file.")
   }
 }

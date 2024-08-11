@@ -7,14 +7,15 @@
 check_netcdf_file(file_name = "israel_caves-2024.nc")
 }
 \arguments{
-\item{file_name}{}
+\item{file_name}{nc file name you're gonna use}
 }
 \value{
-No return, just info
+True or False
 }
 \description{
 Functions for checking if netcdf file is available
 }
 \examples{
- check_netcdf_file("israel_caves-2024.nc")
+filename <- "israel_caves-2024.nc"
+check_netcdf_file(filename)
 }
