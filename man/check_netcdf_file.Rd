@@ -10,7 +10,7 @@ check_netcdf_file(file_name = "israel_caves-2024.nc")
 \item{file_name}{nc file name you're gonna use}
 }
 \value{
-True or False
+Boolean True or False
 }
 \description{
 Functions for checking if netcdf file is available

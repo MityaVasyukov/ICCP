@@ -3,7 +3,7 @@
 #'
 #' @param file_name nc file name you're gonna use
 #'
-#' @return True or False
+#' @return Boolean True or False
 #' @export
 #' @import RNetCDF
 #' @examples
