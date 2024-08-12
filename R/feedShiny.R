@@ -89,42 +89,43 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     ) %>%
     dplyr::left_join( caves[,1:2], by = c("cave_id" = "id") ) %>%
     dplyr::select(cave_id, logger_id, cave_name = name,  light_zone)
+    loggers_mapper <-  loggers %>% dplyr::select(logger_id, cave_id)
 
     ### Generating the dataset ###
     #### Retrieving the data vectors from netcdf file ####
-#    time_id <- as.integer(RNetCDF::var.get.nc(nc, "time"))
-#    time <- ICCP::getTimeStamp(nc, "time", time_id)
+    time_id <- as.integer(RNetCDF::var.get.nc(nc, "time"))
+    time <- ICCP::getTimeStamp(nc, "time", time_id)
 
-#    temperature <- RNetCDF::var.get.nc(nc, "Temperature")
-#    dew_point <- RNetCDF::var.get.nc(nc, "Dew_Point")
-#    rel_humidity <- RNetCDF::var.get.nc(nc, "Relative_Humidity")
+    temperature <- RNetCDF::var.get.nc(nc, "Temperature")
+    dew_point <- RNetCDF::var.get.nc(nc, "Dew_Point")
+    rel_humidity <- RNetCDF::var.get.nc(nc, "Relative_Humidity")
 
-#    dataset <- data.frame(
-#        datetime = rep(time, nrow(loggers)),
-#        logger_id = rep(loggers$logger_id, each = length(time)),
-#        zone = rep(loggers$light_zone, each = length(time)),
-#        tm = as.vector(temperature),
-#        dp = as.vector(dew_point),
-#        rh = as.vector(rel_humidity)
-#    ) %>%
-#    #### removing NA-s ####
-#    dplyr::filter(!is.na(tm) | !is.na(dp) | !is.na(rh)) %>%
-#    #### joining with cave_id ####
-#    dplyr::left_join(loggers %>% select(logger_id, cave_id), by = "logger_id")
-#    #### grouping by cave_id, time stamp and lighting zone ####
-#    dplyr::group_by(cave_id, datetime, zone) %>%
-#    ### averaging measurements received from the same light zones in the same caves
-#    dplyr::summarize(
-#        tm = mean(tm, na.rm = TRUE),
-#        rh = mean(rh, na.rm = TRUE),
-#        dp = mean(dp, na.rm = TRUE),
-#        .groups = 'drop'
-#    ) %>%
-#    #### joining with the cave_name ####
-#    dplyr::left_join(caves, by = c("cave_id" = "id")) %>%
-#    dplyr::select(datetime, cave_name = name, zone, tm, rh, dp)
+    dataset <- data.frame(
+        datetime = rep(time, nrow(loggers)),
+        logger_id = rep(loggers$logger_id, each = length(time)),
+        zone = rep(loggers$light_zone, each = length(time)),
+        tm = as.vector(temperature),
+        dp = as.vector(dew_point),
+        rh = as.vector(rel_humidity)
+    ) %>%
+    #### removing NA-s ####
+    dplyr::filter(!is.na(tm) | !is.na(dp) | !is.na(rh)) %>%
+    #### joining with cave_id ####
+    dplyr::left_join(loggers_mapper, by = "logger_id")  %>%
+    #### grouping by cave_id, time stamp and lighting zone ####
+    dplyr::group_by(cave_id, datetime, zone)  %>%
+    ### averaging measurements received from the same light zones in the same caves
+    dplyr::summarize(
+        tm = mean(tm, na.rm = TRUE),
+        rh = mean(rh, na.rm = TRUE),
+        dp = mean(dp, na.rm = TRUE),
+        .groups = 'drop'
+    ) %>%
+    #### joining with the cave_name ####
+    dplyr::left_join(caves, by = c("cave_id" = "id")) %>%
+    dplyr::select(datetime, cave_name = name, zone, tm, rh, dp)
 
-    data <- list(nc_info, caves, loggers)
+    data <- list(nc_info, caves, loggers, dataset)
     RNetCDF::close.nc(nc)
     return(data)
     total_time <- Sys.time() - start_time
