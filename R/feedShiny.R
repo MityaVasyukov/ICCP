@@ -44,7 +44,7 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     cat(sprintf("%s \t OK \t Proceeding to grab the data from '%s' \n", ICCP::formatSystime(), file_name))
 
 
-    
+
     ### Generating caves/locations metadata table ###
     caves <- data.frame(
         id = RNetCDF::var.get.nc(nc, "cave"),
@@ -141,7 +141,7 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     cat(sprintf("\t\t\t Info \t * measurements received from the same light zones in the same caves have been averaged \n"))
     cat(sprintf("\t\t\t Info \t ** measurements have been rounded to the second digit after decimal divider \n"))
     cat(sprintf("\n%s \t Info \t Closing netcdf file '%s' \n", ICCP::formatSystime(), file_name))
-    
+
     RNetCDF::close.nc(nc)
 
     total_time <- Sys.time() - start_time

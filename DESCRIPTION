@@ -17,7 +17,7 @@ Roxygen: list(markdown = TRUE)
 LazyData: true
 RoxygenNote: 7.3.1
 Imports:
-    RNetCDF, tidyr, dplyr, utils
+    RNetCDF, tidyr, dplyr, utils, shiny, shinydashboard, shinyjs, lubridate, leaflet, DT, ggplot2, plotly, shinycssloaders, mgcv, purrr, stats
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
