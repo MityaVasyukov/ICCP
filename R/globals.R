@@ -1,0 +1,1 @@
+utils::globalVariables(c("cave_id", "logger_id", "name", "light_zone", "tm", "dp", "rh", "datetime", "zone", "val"))

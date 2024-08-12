@@ -35,13 +35,16 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
 
     ## Check if netcdf file loaded successfully ##
     if (!is.null(nc)) {
-    cat("netcdf is ok\n")
+      cat(sprintf("%s \t OK \t netcdf file '%s' is OK\n", ICCP::formatSystime(), file_name))
     } else {
-    stop(cat("Failed to open netcdf file.\n"))
+      stop(cat(sprintf("%s \t Error \t Failed to open '%s' \n", ICCP::formatSystime(), file_name)))
     }
 
     ## Retrieving the data from netcdf file ##
+    cat(sprintf("%s \t OK \t Proceeding to grab the data from '%s' \n", ICCP::formatSystime(), file_name))
 
+
+    
     ### Generating caves/locations metadata table ###
     caves <- data.frame(
         id = RNetCDF::var.get.nc(nc, "cave"),
@@ -123,11 +126,25 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     ) %>%
     #### joining with the cave_name ####
     dplyr::left_join(caves, by = c("cave_id" = "id")) %>%
-    dplyr::select(datetime, cave_name = name, zone, tm, rh, dp)
+    dplyr::select(datetime, cave_name = name, zone, tm, rh, dp) %>%
+    tidyr::pivot_longer(
+        cols = "tm" | "rh" | "dp",
+        names_to = "var",
+        values_to = "val"
+      ) %>%
+    #### rounding the measurements ####
+    mutate( val = round(val, digits = 2) )
 
-    data <- list(nc_info, caves, loggers, dataset)
+    data <- list(nc_info = nc_info, caves = caves, loggers = loggers, dataset = dataset)
+
+    cat(sprintf("%s \t OK \t Data has been successfully grabbed from '%s' \n", ICCP::formatSystime(), file_name))
+    cat(sprintf("\t\t\t Info \t * measurements received from the same light zones in the same caves have been averaged \n"))
+    cat(sprintf("\t\t\t Info \t ** measurements have been rounded to the second digit after decimal divider \n"))
+    cat(sprintf("\n%s \t Info \t Closing netcdf file '%s' \n", ICCP::formatSystime(), file_name))
+    
     RNetCDF::close.nc(nc)
-    return(data)
+
     total_time <- Sys.time() - start_time
     cat(sprintf("\nData retrieving time: %.3f seconds\n\n", as.numeric(total_time, units = "secs")))
-}
+    return(data)
+  }
