@@ -17,7 +17,7 @@ Roxygen: list(markdown = TRUE)
 LazyData: true
 RoxygenNote: 7.3.1
 Imports:
-    RNetCDF
+    RNetCDF, tidyr, dplyr, utils
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
