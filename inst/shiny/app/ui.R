@@ -1,5 +1,4 @@
 ui <-
-
   shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Israel Cave Climate Project"),
     shinydashboard::dashboardSidebar(
@@ -204,7 +203,7 @@ ui <-
             id = "mapCol",
             width = 6,
             height = "100%",
-            leafletOutput("map")
+            leaflet::leafletOutput("map")
           ),
           box(
             id = "metadataCol",
@@ -248,7 +247,7 @@ ui <-
             width = 12,
             height = "100%",
             withSpinner(
-             plotlyOutput("dataplot", height = "100%"),
+             plotly::plotlyOutput("dataplot", height = "100%"),
               type = 7,
               color.background = "#FFFFFF",
               hide.ui = FALSE)
