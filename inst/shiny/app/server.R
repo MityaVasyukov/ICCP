@@ -247,7 +247,7 @@ server <- function(input, output, session) {
             className = 'details-control'
           )
         ),
-        rowCallback = JS(
+        rowCallback = DT::JS(
           'function(row, data, displayNum, displayIndex, dataIndex) {',
           '  var selectedCaves = ', jsonlite::toJSON(selected_caves_list), ';',
           '  if (selectedCaves.indexOf(data[0]) !== -1) {',
