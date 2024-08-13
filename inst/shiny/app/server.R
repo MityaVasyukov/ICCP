@@ -349,7 +349,7 @@ server <- function(input, output, session) {
 
 
   ###### data plotting ######
-  output$dataplot <- renderPlotly({
+  output$dataplot <- plotly::renderPlotly({
 
     data <- transformed_data()
 

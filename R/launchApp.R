@@ -16,6 +16,7 @@
 #' @import ggplot2
 #' @importFrom plotly plot_ly add_trace layout ggplotly subplot plotlyOutput renderPlotly
 #' @importFrom shinycssloaders withSpinner
+#' @importFrom magrittr %>%
 #' @examples
 #' \dontrun{
 #' data <- feedShiny()
