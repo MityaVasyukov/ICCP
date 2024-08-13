@@ -452,7 +452,7 @@ server <- function(input, output, session) {
         min_val = round(ifelse(all(is.na(val)), NA, min(val, na.rm = TRUE)), 1),
         max_val = round(ifelse(all(is.na(val)), NA, max(val, na.rm = TRUE)), 1),
         sd_val = round(sd(val, na.rm = TRUE), 1),
-        n = n(),
+        n = dplyr::n(),
         .groups = 'drop'
       )
 
