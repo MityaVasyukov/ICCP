@@ -199,13 +199,13 @@ ui <-
           condition = "input.show_1Row",
           class = "fluidRow",
           id = "firstRow",
-          box(
+          shinydashboard::box(
             id = "mapCol",
             width = 6,
             height = "100%",
             leaflet::leafletOutput("map")
           ),
-          box(
+          shinydashboard::box(
             id = "metadataCol",
             width = 6,
             height = "100%",
@@ -218,7 +218,7 @@ ui <-
           condition = "input.show_2Row",
           class = "fluidRow",
           id = "secondRow",
-          box(
+          shinydashboard::box(
             id = "rangePlot",
             width = 12,
             plotOutput("dateRangePlot", height = "100%")
@@ -230,7 +230,7 @@ ui <-
           condition = "input.show_34Row",
           class = "fluidRow",
           id = "thirdRow",
-          box(
+          shinydashboard::box(
             id = "plotHeader",
             width = 12,
             uiOutput("header")
@@ -242,7 +242,7 @@ ui <-
           condition = "input.show_34Row",
           class = "fluidRow",
           id = "fourthRow",
-          box(
+          shinydashboard::box(
             id = "plot",
             width = 12,
             height = "100%",
@@ -259,7 +259,7 @@ ui <-
           condition = "input.show_5Row",
           class = "fluidRow",
           id = "fifthRow",
-          box(
+          shinydashboard::box(
             id = "summary",
             width = 12,
             height = "100%",
