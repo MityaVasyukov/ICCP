@@ -13,43 +13,25 @@ knitr::opts_chunk$set(
 )
 ```
 
-# ICCP
+# ICCP : Israeli caves climate project 2024
 
-<!-- badges: start -->
-<!-- badges: end -->
+## Status
+Under development.
 
-The goal of ICCP is to ...
+## Overview
+The package provides an example of climatic data exploring within a Shiny Application. The data (`israel_caves-2024.nc`) origins from climatic sensors set in 12 caves located in Israel. The climate data (temperature, relative humidity, and dew point) was collected from loggers set in various lighting zones (dark, light, twilight or control) throughout each cave. The measurements were taken by the loggers each hour from 2019-2021, with the measurement date or time spans varrying across the loggers.
 
 ## Installation
 
-You can install the development version of ICCP from [GitHub](https://github.com/) with:
-
 ``` r
-# install.packages("devtools")
+library(devtools)
 devtools::install_github("MityaVasyukov/ICCP")
 ```
 
-## Example
+## Usage
 
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
+``` r
 library(ICCP)
-## basic example code
+data <- feedShiny()
+launchApp()
 ```
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.

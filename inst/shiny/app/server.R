@@ -148,7 +148,7 @@ server <- function(input, output, session) {
     }
 
     conditions_str <- paste(conditions, collapse = " & ")
-    print(conditions_str) #remove later
+    #print(conditions_str) #remove later
 
     if (length(conditions) == 0) {
       fd <- df
@@ -171,11 +171,11 @@ server <- function(input, output, session) {
     } else {data <- fd}
 
     if (nrow(data) == 0) {
-      cat("filtered_data -- No data available\n") # remove later
+      cat("filtered_data -- No data available\n")
       return(NULL)
     }
 
-    cat("filtered_data -- OK\n") # remove later
+    #cat("filtered_data -- OK\n") # remove later
     return(data)
   })
 
@@ -197,7 +197,7 @@ server <- function(input, output, session) {
       data <- ICCP::fitGam(data)
     }
 
-    cat("transformed_data -- OK") # remove later
+   # cat("transformed_data -- OK") # remove later
     return(data)
   }) #%>% bindEvent(filtered_data(), input$units, input$flatten)
 
