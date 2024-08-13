@@ -205,7 +205,7 @@ server <- function(input, output, session) {
 
 
   ###### map output ######
-  output$map <- renderLeaflet({
+  output$map <- leaflet::renderLeaflet({
     req(mdf)
 
     leaflet::leaflet(mdf) %>%
