@@ -1,10 +1,10 @@
 ui <-
 
-  dashboardPage(
-    dashboardHeader(title = "Israel Cave Climate Project"),
-    dashboardSidebar(
-      sidebarMenu(
-        menuItem(
+  shinydashboard::dashboardPage(
+    shinydashboard::dashboardHeader(title = "Israel Cave Climate Project"),
+    shinydashboard::dashboardSidebar(
+      shinydashboard::sidebarMenu(
+        shinydashboard::menuItem(
           "Data filtering",
           tabName = "filtering",
           icon = icon("dashboard"),
@@ -63,7 +63,7 @@ ui <-
             value = c(0, 24)
           )
         ),
-        menuItem(
+        shinydashboard::menuItem(
           "Plot settings",
           tabName = "settings",
           icon = icon("dashboard"),
@@ -108,7 +108,7 @@ ui <-
             multiple = TRUE
           )
         ),
-        menuItem(
+        shinydashboard::menuItem(
           "Data",
           tabName = "data",
           icon = icon("chart-line"),
@@ -119,9 +119,9 @@ ui <-
         )
       )
     ),
-    dashboardBody(
-      useShinyjs(),
-      extendShinyjs(text = "
+    shinydashboard::dashboardBody(
+      shinyjs::useShinyjs(),
+      shinyjs::extendShinyjs(text = "
                 shinyjs.init = function() {
                     $(document).on('click', '.cave-name', function() {
                     let cave = $(this).attr('id');
