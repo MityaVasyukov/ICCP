@@ -246,7 +246,7 @@ ui <-
             id = "plot",
             width = 12,
             height = "100%",
-            withSpinner(
+            shinycssloaders::withSpinner(
              plotly::plotlyOutput("dataplot", height = "100%"),
               type = 7,
               color.background = "#FFFFFF",
