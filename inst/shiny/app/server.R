@@ -209,7 +209,7 @@ server <- function(input, output, session) {
     req(mdf)
 
     leaflet::leaflet(mdf) %>%
-      leaflet::addProviderTiles(providers$Esri.WorldImagery) %>%
+      leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery) %>%
       leaflet::setView(lng = 35.1, lat = 31.4, zoom = 7)
   })
 
