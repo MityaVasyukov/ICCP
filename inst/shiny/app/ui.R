@@ -1,5 +1,4 @@
-ui <-
-  shinydashboard::dashboardPage(
+ui <- shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(title = "Israel Cave Climate Project"),
     shinydashboard::dashboardSidebar(
       shinydashboard::sidebarMenu(
@@ -111,6 +110,13 @@ ui <-
           "Data",
           tabName = "data",
           icon = icon("chart-line"),
+          selectInput(
+            inputId = "save_input",
+            label = "Save CSV",
+            choices = NULL,
+            multiple = FALSE
+          ),
+          downloadButton("save_btn", label = "Save all"),
           checkboxInput("show_1Row", "Overview", TRUE),
           checkboxInput("show_2Row", "Data scope", TRUE),
           checkboxInput("show_34Row", "Selected data plot", TRUE),

@@ -80,6 +80,7 @@ server <- function(input, output, session) {
     updateDateRangeInput(session, "dateRange", min = min(as.Date(df$datetime)), max = max(as.Date(df$datetime)), start = min(as.Date(df$datetime)), end = max(as.Date(df$datetime)))
     updateSliderInput(session, "day", value = c(1, 31))
     updateSliderInput(session, "time", value = c(0, 24))
+    updateSelectInput(session, "save_input", choices = c("", "filtered", "dataset", "metadata", "loggers"), selected = NULL)
   })
 
   ###### dynamic UI rules ######
@@ -460,6 +461,54 @@ server <- function(input, output, session) {
   }) # %>% bindEvent(transformed_data())
 
   #####     OBSERVERS     #####
+
+selected_data <- reactive({
+  switch(input$save_input,
+    "filtered" = filtered_data(),
+    "dataset" = df,
+    "metadata" = mdf,
+    "loggers" = exp,
+    NULL
+  )
+})
+
+output$save_btn <- downloadHandler(
+  filename = function() {
+    paste("ICCP", input$save_input, Sys.Date(), ".csv", sep = "_")
+  },
+  content = function(file) {
+    data_to_save <- selected_data()
+    
+    if (is.null(data_to_save)) {
+      showNotification("No data selected for saving.", type = "error")
+      return(NULL)
+    }
+    
+    # Notify the user that the process has started
+    showNotification("Saving data, please wait...", type = "message", duration = NULL)
+    
+    # Generate the CSV file
+    write.csv(data_to_save, file, row.names = FALSE)
+    
+    # Notify the user that the process is complete
+    showNotification("Data saved successfully!", type = "message")
+  }
+)
+
+
+ #data <- get("data", envir = .GlobalEnv)
+ # df <- as.data.frame(data$dataset)
+ # mdf <- as.data.frame(data$caves)
+ # exp <- as.data.frame(data$loggers)
+
+
+
+
+
+
+
+
+
 
   ###### dynamic map layout ######
   observe({
