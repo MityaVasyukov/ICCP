@@ -2,7 +2,6 @@ server <- function(input, output, session) {
 
   # Load the data
 
-
   #####     SETTINGS      #####
 
   ###### setting data sources      ######
@@ -345,7 +344,7 @@ server <- function(input, output, session) {
       zone_text <- ""
     }
 
-    HTML(paste(cave, zone_text))
+    HTML(paste("selection:  ", cave, zone_text))
   })
 
 
@@ -495,21 +494,6 @@ output$save_btn <- downloadHandler(
   }
 )
 
-
- #data <- get("data", envir = .GlobalEnv)
- # df <- as.data.frame(data$dataset)
- # mdf <- as.data.frame(data$caves)
- # exp <- as.data.frame(data$loggers)
-
-
-
-
-
-
-
-
-
-
   ###### dynamic map layout ######
   observe({
     selected <- selected_caves()
@@ -569,7 +553,6 @@ output$save_btn <- downloadHandler(
       )
   })
 
-
   ###### plot header coloring ######
   observeEvent(input$cave, {
     lapply(input$cave, function(cave) {
@@ -598,7 +581,4 @@ output$save_btn <- downloadHandler(
       updateSelectInput(session, "cave",  selected = selected_caves())
     }
   })
-
-
 }
-
