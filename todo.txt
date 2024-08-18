@@ -1,0 +1,6 @@
+1. do smth with metadata readability
+2. add shemes
+3. add photos
+4. deploy at Shiny server
+5. add logger location
+6. CHELSA and formula
