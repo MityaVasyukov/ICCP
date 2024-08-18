@@ -219,8 +219,7 @@ server <- function(input, output, session) {
 
     data <- mdf %>%
       dplyr::select(
-        "name", "region", "elevation",
-        "occupation_periods", "length", "topography",
+        "name", "region", "occupation_periods", "elevation", "length", "topography",
         "phytogeographic_region", "main_entrance",
         "secondary_entrance", "lithostratigraphy",
         "cave_formation", "current_environment",
@@ -228,6 +227,40 @@ server <- function(input, output, session) {
 
     selected_caves_list <- selected_caves()
 
+    # abbreviation dictionary
+    # should be taken from netcdf file
+    abbreviations <- list(
+      "Epi" = "Epipaleolithic",
+      "PPN" = "Pre_Pottery Neolithic",
+      "PN" = "Pottery Neolithic",
+      "LC" = "Late Chalcolithic",
+      "EBA" = "Early Bronze Age",
+      "IBA" = "Intermediate Bronze Age",
+      "MBA" = "Middle Bronze Age",
+      "LBA" = "Late Bronze Age",
+      "IA" = "Iron Age",
+      "PER" = "Persian Period",
+      "HEL" = "Hellenistic Period",
+      "ROM" = "Roman Period",
+      "BYZ" = "Byzantine Period",
+      "MAM" = "Mamluk Period",
+      "OTT" = "Ottoman Period"
+    )
+    
+    # convert the abbreviations into clickable links
+    data$occupation_periods <- sapply(data$occupation_periods, function(periods) {
+      for (abbr in names(abbreviations)) {
+        periods <- gsub(
+          pattern = paste0("\\b", abbr, "\\b"),
+          replacement = sprintf('<a href="#" class="abbr-link" data-abbr="%s">%s</a>', abbr, abbr),
+          x = periods,
+          fixed = FALSE
+        )
+      }
+      periods
+    })
+
+    # building data table
     DT::datatable(
       data,
       escape = FALSE,
@@ -238,9 +271,8 @@ server <- function(input, output, session) {
         autoWidth = FALSE,
         columnDefs = list(
           list(
-            visible = TRUE,
-            targets = c(0:3),
-            className = 'dt-head-left'
+            visible = FALSE,
+            targets = c(3:(ncol(data)-1))
           ),
           list(
             targets = "_all",
@@ -260,10 +292,68 @@ server <- function(input, output, session) {
       ),
       extensions = c('Responsive', 'Buttons'),
       class = "display compact",
-      rownames = FALSE
-    )
-  })
+      rownames = FALSE,
+      callback = DT::JS(
+      sprintf("
+        // change cursor to pointer when hovering
+        $('body').on('mouseenter', 'table.dataTable tbody tr', function() {
+          $(this).css('cursor', 'pointer');
+        });
+        
+        table.on('click', 'tr', function() {
+          var row = table.row(this);
+          if (row.child.isShown()) {
+            row.child.hide();
+            $(this).removeClass('shown');
+          } else {
+            var data = row.data();
+            var details = '';
+            for (var i = 4; i < data.length; i++) {
+              details += '<b>' + table.column(i).header().innerText + ':</b> ' + data[i] + '<br>';
+            }
+            row.child(details).show();
+            $(this).addClass('shown');
+          }
+        });
 
+        // handle abbreviation hover with delay
+        var hoverTimeout;
+        $('body').on('mouseenter', '.abbr-link', function(e) {
+          var abbr = $(this).data('abbr');
+          var descriptions = %s;
+          var description = descriptions[abbr];
+          var $this = $(this);
+
+          hoverTimeout = setTimeout(function() {
+            var popup = $('<div class=\"abbr-popup\"></div>')
+              .text(description)
+              .css({
+                position: 'absolute',
+                top: $this.offset().top + $this.outerHeight(),
+                left: $this.offset().left,
+                border: '1px solid #ccc',
+                background: '#fff',
+                padding: '5px',
+                'z-index': 1000,
+                'max-width': '200px'
+              })
+              .appendTo('body');
+            $this.data('popup', popup);
+          }, 500); // Delay for 500ms
+        });
+
+        $('body').on('mouseleave', '.abbr-link', function() {
+          clearTimeout(hoverTimeout);
+          var popup = $(this).data('popup');
+          if (popup) {
+            popup.remove();
+            $(this).removeData('popup');
+          }
+        });
+      ", jsonlite::toJSON(abbreviations))
+    )
+  )
+})
 
   ###### data scope output #######
   output$dateRangePlot <- renderPlot({
