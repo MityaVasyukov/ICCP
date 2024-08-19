@@ -25,7 +25,13 @@ metadata$ThumbnailImage
 
 
 
-
+install.packages("jpeg")
+install.packages("grid")
+library(jpeg)
+library(grid)
+# For JPEG images
+img <- readJPEG("x:/repo_iccp/ICCP/inst/www/images/001.jpg")
+grid.raster(img)
 
 
 
