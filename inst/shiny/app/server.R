@@ -259,7 +259,7 @@ server <- function(input, output, session) {
             slickR::settings(slidesToShow = 1, adaptiveHeight = TRUE)
         })
       } else {
-        showModal(modalDialog(
+        shiny::showModal(modalDialog(
           title = paste("No Photos for", cave_name),
           easyClose = TRUE,
           footer = NULL,
@@ -276,10 +276,10 @@ server <- function(input, output, session) {
       pdf_folder <- system.file("www/images", package = "ICCP")
 
       filtered_pdfs <- list.files(pdf_folder, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
-
+      print(pdf_folder)
 
       if (length(filtered_pdfs) > 0) {
-        showModal(modalDialog(
+        shiny::showModal(modalDialog(
           title = tagList(
             span(paste(input$view_pdf$cave, "PDF Scheme"), style = "font-weight: bold;"),
             div(style = "float:right;",
