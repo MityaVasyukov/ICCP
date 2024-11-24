@@ -256,7 +256,7 @@ server <- function(input, output, session) {
             need(length(filtered_photos) > 0, "No images found for this cave.")
           )
           slickR::slickR(filtered_photos, height = 500, width = "100%") +
-            settings(slidesToShow = 1, adaptiveHeight = TRUE)
+            slickR::settings(slidesToShow = 1, adaptiveHeight = TRUE)
         })
       } else {
         showModal(modalDialog(
