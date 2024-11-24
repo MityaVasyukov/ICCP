@@ -246,12 +246,12 @@ server <- function(input, output, session) {
           easyClose = TRUE,
           footer = NULL,
           shinycssloaders::withSpinner(
-            slickROutput("photo_carousel", width = "100%", height = "500px"),
+            slickR::slickROutput("photo_carousel", width = "100%", height = "500px"),
             type = 4
           )
         ))
 
-        output$photo_carousel <- renderSlickR({
+        output$photo_carousel <- slickR::renderSlickR({
           validate(
             need(length(filtered_photos) > 0, "No images found for this cave.")
           )
