@@ -255,7 +255,7 @@ server <- function(input, output, session) {
           validate(
             need(length(filtered_photos) > 0, "No images found for this cave.")
           )
-          slickR(filtered_photos, height = 500, width = "100%") +
+          slickR::slickR(filtered_photos, height = 500, width = "100%") +
             settings(slidesToShow = 1, adaptiveHeight = TRUE)
         })
       } else {
