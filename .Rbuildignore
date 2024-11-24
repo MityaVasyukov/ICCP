@@ -4,6 +4,5 @@
 ^README\.Rmd$
 ^README\.md$
 ^todo.txt$
-^inst/www$
 ^drafts.R$
 ^.*\.RDataTmp$
