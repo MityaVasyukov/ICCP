@@ -181,11 +181,11 @@ ui <- shinydashboard::dashboardPage(
             " function handleNavClick(sectionId) {
                 setTimeout(function() {
                   document.getElementById(sectionId).scrollIntoView({ behavior: 'instant'});
-                }, 5); 
-              
+                }, 5);
+
                 setTimeout(function() {
                   window.scrollBy(0, -50);
-                }, 10); 
+                }, 10);
               }"
           ))
         ),
@@ -273,13 +273,53 @@ ui <- shinydashboard::dashboardPage(
             overflow: auto;
             resize: both;
           }
+
+          .photo-container {
+            width: 70vw;  /* 70% of the viewport width */
+            height: 70vh; /* 70% of the viewport height */
+            margin: auto;
+            position: relative;
+            overflow: hidden;
+          }
+
+          .slick-slide img {
+            object-fit: contain; /* Ensure image fits within container without cropping */
+            width: 100%; /* Make sure image takes full width */
+            height: 100%; /* Ensure image takes full height */
+          }
+
+          /* Adjust slick navigation buttons inside or outside the frame */
+          .slick-prev, .slick-next {
+            position: absolute;
+            top: 50%;
+            z-index: 2;
+            background-color: rgba(0, 0, 0, 0.5);  /* semi-transparent button background */
+            color: white;  /* Set color for the arrows */
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            line-height: 35px;
+            text-align: center;
+            transform: translate(0, -50%);
+          }
+
+          /* Position the buttons inside or outside */
+          .slick-prev {
+            left: -60px; /* Button outside the frame on the left */
+          }
+
+          .slick-next {
+            right: -60px; /* Button outside the frame on the right */
+          }
+
          ")),
       tabName = "data",
       fluidRow(id = "firstRow",
         conditionalPanel(
           condition = "input.show_1Row",
           class = "fluidRow",
-          
+
           shinydashboard::box(
             id = "mapCol",
             width = 6,
@@ -298,7 +338,7 @@ ui <- shinydashboard::dashboardPage(
         conditionalPanel(
           condition = "input.show_2Row",
           class = "fluidRow",
-          
+
           shinydashboard::box(
             id = "rangePlot",
             width = 12,
@@ -310,7 +350,7 @@ ui <- shinydashboard::dashboardPage(
         conditionalPanel(
           condition = "input.show_3Row",
           class = "fluidRow",
-          
+
           shinydashboard::box(
             id = "plot",
             width = 12,

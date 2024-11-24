@@ -2,14 +2,15 @@ server <- function(input, output, session) {
 
   # Load the data
 
-  #####     SETTINGS      #####
+#####     SETTINGS      #####
 
   ###### setting data sources      ######
   data <- get("data", envir = .GlobalEnv)
   df <- as.data.frame(data$dataset)
   mdf <- as.data.frame(data$caves)
   exp <- as.data.frame(data$loggers)
-
+  photo_path <- system.file("www/images", package = "ICCP")
+ 
   ###### style settings ######
   default_cave_colors <- c(
     "Skulls" = "#FF0000",
@@ -33,7 +34,7 @@ server <- function(input, output, session) {
     "light" = "#f1ee0f",
     "twilight" = "#404040",
     "control" = "#880000"
-  )
+    )
 
   zone_colors <- reactiveVal(default_zone_colors)
 
@@ -201,7 +202,7 @@ server <- function(input, output, session) {
     return(data)
   }) #%>% bindEvent(filtered_data(), input$units, input$flatten)
 
-  #####     RENDERING     #####
+#####     RENDERING     #####
 
 
   ###### map output ######
@@ -212,6 +213,95 @@ server <- function(input, output, session) {
       leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery) %>%
       leaflet::setView(lng = 35.1, lat = 31.4, zoom = 7)
   })
+
+  ###### PHOTOS AND PDF ######
+    # Preload photo and pdf paths
+    photo_files <- reactive({
+      list.files(photo_path, full.names = TRUE, pattern = "\\.(jpg|jpeg|png|gif)$", ignore.case = TRUE)
+    })
+
+    pdf_files <- reactive({
+      list.files(photo_path, full.names = TRUE, pattern = "\\.pdf$", ignore.case = TRUE)
+    })
+
+    # Generate slickR object with photos
+    slick_photos <- reactive({
+      slickR(
+        photo_files(),
+        height = "100%",
+        width = "100%"
+      ) + settings(slidesToShow = 1, adaptiveHeight = TRUE)
+    })
+
+    observeEvent(input$view_photos, {
+      req(input$view_photos$cave)
+
+      cave_name <- gsub(" ", "_", input$view_photos$cave)
+      filtered_photos <- grep(cave_name, photo_files(), value = TRUE)
+
+      if (length(filtered_photos) > 0) {
+        showModal(modalDialog(
+          title = paste(input$view_photos$cave, "cave"),
+          size = "l",
+          easyClose = TRUE,
+          footer = NULL,
+          shinycssloaders::withSpinner(
+            slickROutput("photo_carousel", width = "100%", height = "500px"),
+            type = 4
+          )
+        ))
+
+        output$photo_carousel <- renderSlickR({
+          validate(
+            need(length(filtered_photos) > 0, "No images found for this cave.")
+          )
+          slickR(filtered_photos, height = 500, width = "100%") +
+            settings(slidesToShow = 1, adaptiveHeight = TRUE)
+        })
+      } else {
+        showModal(modalDialog(
+          title = paste("No Photos for", cave_name),
+          easyClose = TRUE,
+          footer = NULL,
+          h4("There are no photos available for this cave.")
+        ))
+      }
+    })
+
+    # PDF
+    observeEvent(input$view_pdf, {
+      req(input$view_pdf$cave)
+      cave_name <- gsub(" ", "_", input$view_pdf$cave)
+
+      pdf_folder <- system.file("www/images", package = "ICCP")
+
+      filtered_pdfs <- list.files(pdf_folder, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
+
+
+      if (length(filtered_pdfs) > 0) {
+        showModal(modalDialog(
+          title = tagList(
+            span(paste(input$view_pdf$cave, "PDF Scheme"), style = "font-weight: bold;"),
+            div(style = "float:right;",
+                modalButton("Close")
+            )
+          ),
+          size = "l",
+          easyClose = TRUE,
+          footer = NULL,
+          HTML(paste0('<iframe id="pdf_frame" src="/pdfs/', basename(filtered_pdfs[1]), '" width="100%" height="600px"></iframe>'))
+        ))
+      } else {
+        showModal(modalDialog(
+          title = paste("No PDF for", cave_name),
+          easyClose = TRUE,
+          footer = NULL,
+          h4("No PDF available for this cave.")
+        ))
+      }
+    })
+
+
 
   ###### metadata table output #######
   output$metadata_table <- DT::renderDT({
@@ -226,6 +316,14 @@ server <- function(input, output, session) {
         "structure", "research_history", "findings", "notes")
 
     selected_caves_list <- selected_caves()
+
+    # Add a 'Photo' button column to the data
+    data$photo_button <- sapply(data$name, function(name) {
+      paste0(
+        '<button class="photo-btn" data-cave="', name, '">Photo</button>',
+        ' <button class="pdf-btn" data-cave="', name, '">Scheme</button>'
+      )
+    })
 
     # abbreviation dictionary
     # should be taken from netcdf file
@@ -246,7 +344,7 @@ server <- function(input, output, session) {
       "MAM" = "Mamluk Period",
       "OTT" = "Ottoman Period"
     )
-    
+
     # convert the abbreviations into clickable links
     data$occupation_periods <- sapply(data$occupation_periods, function(periods) {
       for (abbr in names(abbreviations)) {
@@ -299,7 +397,20 @@ server <- function(input, output, session) {
         $('body').on('mouseenter', 'table.dataTable tbody tr', function() {
           $(this).css('cursor', 'pointer');
         });
-        
+
+        // Handle button click to show the photo modal for the clicked cave
+        $('body').on('click', '.photo-btn', function() {
+          var caveName = $(this).data('cave');
+          var timestamp = new Date().getTime(); // Unique timestamp
+          Shiny.setInputValue('view_photos', { cave: caveName, time: timestamp }, { priority: 'event' });
+        });
+
+        $('body').on('click', '.pdf-btn', function() {
+          var caveName = $(this).data('cave');
+          var timestamp = new Date().getTime();
+          Shiny.setInputValue('view_pdf', { cave: caveName, time: timestamp }, { priority: 'event' });
+        });
+
         table.on('click', 'tr', function() {
           var row = table.row(this);
           if (row.child.isShown()) {
@@ -549,126 +660,128 @@ server <- function(input, output, session) {
     return(as.data.frame(summary))
   }) # %>% bindEvent(transformed_data())
 
-  #####     OBSERVERS     #####
 
-selected_data <- reactive({
-  switch(input$save_input,
-    "filtered" = filtered_data(),
-    "dataset" = df,
-    "metadata" = mdf,
-    "loggers" = exp,
-    NULL
-  )
-})
+#####      OBSERVERS     #####
 
-output$save_btn <- downloadHandler(
-  filename = function() {
-    paste("ICCP", input$save_input, Sys.Date(), ".csv", sep = "_")
-  },
-  content = function(file) {
-    data_to_save <- selected_data()
-    
-    if (is.null(data_to_save)) {
-      showNotification("No data selected for saving.", type = "error")
-      return(NULL)
+  selected_data <- reactive({
+    switch(input$save_input,
+      "filtered" = filtered_data(),
+      "dataset" = df,
+      "metadata" = mdf,
+      "loggers" = exp,
+      NULL
+    )
+  })
+
+  output$save_btn <- downloadHandler(
+    filename = function() {
+      paste("ICCP", input$save_input, Sys.Date(), ".csv", sep = "_")
+    },
+    content = function(file) {
+      data_to_save <- selected_data()
+
+      if (is.null(data_to_save)) {
+        showNotification("No data selected for saving.", type = "error")
+        return(NULL)
+      }
+
+      # Notify the user that the process has started
+      showNotification("Saving data, please wait...", type = "message", duration = NULL)
+
+      # Generate the CSV file
+      write.csv(data_to_save, file, row.names = FALSE)
+
+      # Notify the user that the process is complete
+      showNotification("Data saved successfully!", type = "message")
     }
-    
-    # Notify the user that the process has started
-    showNotification("Saving data, please wait...", type = "message", duration = NULL)
-    
-    # Generate the CSV file
-    write.csv(data_to_save, file, row.names = FALSE)
-    
-    # Notify the user that the process is complete
-    showNotification("Data saved successfully!", type = "message")
-  }
-)
+  )
 
-  ###### dynamic map layout ######
-  observe({
-    selected <- selected_caves()
-    leaflet::leafletProxy("map") %>%
-      leaflet::clearMarkers() %>%
-      leaflet::addCircleMarkers(
-        data = mdf,
-        lat = ~latitude,
-        lng = ~longitude,
-        color = ~ifelse(name %in% selected, "yellow", "blue"),
-        radius = 5,
-        label = ~name,
-        stroke = TRUE,
-        fillOpacity = 1,
-        popup = ~paste(
-          "<span style='font-size: 14px;'><b style='font-size: 15px;'>",
-          name,
-          "</b> cave </span> <br/>",
-          "<b style='font-size:15px;'>Region:</b>",
-          "<span style='font-size:12px;'>",
-          region,
-          "</span><br/>",
-          "<b style='font-size:15px;'>Elevation:</b>",
-          "<span style='font-size:12px;'>",
-          elevation,
-          "m</span><br/>",
-          "<b style='font-size:15px;'>Topography:</b>",
-          "<span style='font-size:12px;'>",
-          topography,
-          "</span><br/>",
-          "<form id='popup-form' method='post'>",
-          "<button type='button' onclick=\"Shiny.setInputValue('add_cave', '",
-          name,
-          "', {priority: 'event'})\">Select ",
-          name,
-          "</button>",
-          "</form>"
-        )
-      ) %>%
-      leaflet::addLabelOnlyMarkers(
-        data = mdf,
-        lng = ~longitude,
-        lat = ~latitude,
-        label = ~as.character(name),
-        labelOptions = leaflet::labelOptions(
-          noHide = TRUE,
-          textOnly = TRUE,
-          direction = "auto",
-          offset = c(25, 0),
-          style = list(
-            "font-size" = "15px",
-            "font-weight" = "bold",
-            "color" = "#000000",
-            "text-shadow" = "0px 0px 4px #ffffff"
+    ###### dynamic map layout ######
+    observe({
+      selected <- selected_caves()
+      leaflet::leafletProxy("map") %>%
+        leaflet::clearMarkers() %>%
+        leaflet::addCircleMarkers(
+          data = mdf,
+          lat = ~latitude,
+          lng = ~longitude,
+          color = ~ifelse(name %in% selected, "yellow", "blue"),
+          radius = 5,
+          label = ~name,
+          stroke = TRUE,
+          fillOpacity = 1,
+          popup = ~paste(
+            "<span style='font-size: 14px;'><b style='font-size: 15px;'>",
+            name,
+            "</b> cave </span> <br/>",
+            "<b style='font-size:15px;'>Region:</b>",
+            "<span style='font-size:12px;'>",
+            region,
+            "</span><br/>",
+            "<b style='font-size:15px;'>Elevation:</b>",
+            "<span style='font-size:12px;'>",
+            elevation,
+            "m</span><br/>",
+            "<b style='font-size:15px;'>Topography:</b>",
+            "<span style='font-size:12px;'>",
+            topography,
+            "</span><br/>",
+            "<form id='popup-form' method='post'>",
+            "<button type='button' onclick=\"Shiny.setInputValue('add_cave', '",
+            name,
+            "', {priority: 'event'})\">Select ",
+            name,
+            "</button>",
+            "</form>"
+          )
+        ) %>%
+        leaflet::addLabelOnlyMarkers(
+          data = mdf,
+          lng = ~longitude,
+          lat = ~latitude,
+          label = ~as.character(name),
+          labelOptions = leaflet::labelOptions(
+            noHide = TRUE,
+            textOnly = TRUE,
+            direction = "auto",
+            offset = c(25, 0),
+            style = list(
+              "font-size" = "15px",
+              "font-weight" = "bold",
+              "color" = "#000000",
+              "text-shadow" = "0px 0px 4px #ffffff"
+            )
           )
         )
-      )
-  })
+    })
 
-  ###### plot header coloring ######
-  observeEvent(input$cave, {
-    lapply(input$cave, function(cave) {
-      cave_id <- gsub(" ", "_", cave)
+    ###### plot header coloring ######
+    observeEvent(input$cave, {
+      lapply(input$cave, function(cave) {
+        cave_id <- gsub(" ", "_", cave)
 
-      observeEvent(input[[paste0(cave_id, "_color")]], {
-        new_color <- input[[paste0(cave_id, "_color")]]
-        colors <- cave_colors()
-        colors[[cave]] <- new_color
-        cave_colors(colors)
+        observeEvent(input[[paste0(cave_id, "_color")]], {
+          new_color <- input[[paste0(cave_id, "_color")]]
+          colors <- cave_colors()
+          colors[[cave]] <- new_color
+          cave_colors(colors)
+        })
       })
     })
-  })
 
-  ###### selected_caves dynamic updating ######
-  observeEvent(input$cave, { selected_caves(input$cave) }, ignoreInit = TRUE)
+    ###### selected_caves dynamic updating ######
+    observeEvent(input$cave, { selected_caves(input$cave) }, ignoreInit = TRUE)
 
-  observeEvent(input$add_cave, {
-    #req(input$add_cave)
+    observeEvent(input$add_cave, {
+      #req(input$add_cave)
 
-    current_caves <- trimws(selected_caves())
-    new_cave <- trimws(input$add_cave)
+      current_caves <- trimws(selected_caves())
+      new_cave <- trimws(input$add_cave)
 
-    if (!new_cave %in% current_caves) {
-      selected_caves(c(current_caves, new_cave))
-      updateSelectInput(session, "cave",  selected = selected_caves())
-    }
-  })
+      if (!new_cave %in% current_caves) {
+        selected_caves(c(current_caves, new_cave))
+        updateSelectInput(session, "cave",  selected = selected_caves())
+      }
+    })
+
 }

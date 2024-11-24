@@ -18,6 +18,8 @@
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom magrittr %>%
 #' @importFrom usethis use_pipe
+#' @import slickR
+#'
 #' @examples
 #' \dontrun{
 #' data <- feedShiny()
