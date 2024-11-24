@@ -9,7 +9,7 @@ server <- function(input, output, session) {
   df <- as.data.frame(data$dataset)
   mdf <- as.data.frame(data$caves)
   exp <- as.data.frame(data$loggers)
-  photo_path <- system.file("www/images", package = "ICCP")
+  media_path <- system.file("www/images", package = "ICCP")
  
   ###### style settings ######
   default_cave_colors <- c(
@@ -217,11 +217,7 @@ server <- function(input, output, session) {
   ###### PHOTOS AND PDF ######
     # Preload photo and pdf paths
     photo_files <- reactive({
-      list.files(photo_path, full.names = TRUE, pattern = "\\.(jpg|jpeg|png|gif)$", ignore.case = TRUE)
-    })
-
-    pdf_files <- reactive({
-      list.files(photo_path, full.names = TRUE, pattern = "\\.pdf$", ignore.case = TRUE)
+      list.files(media_path, full.names = TRUE, pattern = "\\.(jpg|jpeg|png|gif)$", ignore.case = TRUE)
     })
 
     # Generate slickR object with photos
@@ -271,26 +267,16 @@ server <- function(input, output, session) {
     # PDF
     observeEvent(input$view_pdf, {
       req(input$view_pdf$cave)
-      cave_name <- gsub(" ", "_", input$view_pdf$cave)
 
-      pdf_folder <- system.file("www/images", package = "ICCP")
+      cave_name <- gsub(" ", "_", input$view_pdf$cave) 
+      filtered_pdfs <- list.files(media_path, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
 
-      filtered_pdfs <- list.files(pdf_folder, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
-      print(filtered_pdfs)
+      print(filtered_pdfs[1])
 
       if (length(filtered_pdfs) > 0) {
-        shiny::showModal(modalDialog(
-          title = tagList(
-            span(paste(input$view_pdf$cave, "PDF Scheme"), style = "font-weight: bold;"),
-            div(style = "float:right;",
-                modalButton("Close")
-            )
-          ),
-          size = "l",
-          easyClose = TRUE,
-          footer = NULL,
-          shiny::HTML(paste0('<iframe id="pdf_frame" src="/pdfs/', basename(filtered_pdfs[1]), '" width="100%" height="600px"></iframe>'))
-        ))
+        
+          utils::browseURL(filtered_pdfs[1])
+      
       } else {
         showModal(modalDialog(
           title = paste("No PDF for", cave_name),
