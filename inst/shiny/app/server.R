@@ -276,7 +276,7 @@ server <- function(input, output, session) {
       pdf_folder <- system.file("www/images", package = "ICCP")
 
       filtered_pdfs <- list.files(pdf_folder, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
-      print(pdf_folder)
+      print(filtered_pdfs)
 
       if (length(filtered_pdfs) > 0) {
         shiny::showModal(modalDialog(
@@ -289,7 +289,7 @@ server <- function(input, output, session) {
           size = "l",
           easyClose = TRUE,
           footer = NULL,
-          HTML(paste0('<iframe id="pdf_frame" src="/pdfs/', basename(filtered_pdfs[1]), '" width="100%" height="600px"></iframe>'))
+          shiny::HTML(paste0('<iframe id="pdf_frame" src="/pdfs/', basename(filtered_pdfs[1]), '" width="100%" height="600px"></iframe>'))
         ))
       } else {
         showModal(modalDialog(
