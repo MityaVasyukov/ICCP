@@ -271,8 +271,6 @@ server <- function(input, output, session) {
       cave_name <- gsub(" ", "_", input$view_pdf$cave) 
       filtered_pdfs <- list.files(media_path, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
 
-      print(filtered_pdfs[1])
-
       if (length(filtered_pdfs) > 0) {
         
           utils::browseURL(filtered_pdfs[1])
