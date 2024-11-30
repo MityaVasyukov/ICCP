@@ -6,3 +6,4 @@
 ^todo.txt$
 ^drafts.R$
 ^.*\.RDataTmp$
+^R/getChelsaData\.r$

@@ -5,12 +5,15 @@ server <- function(input, output, session) {
 #####     SETTINGS      #####
 
   ###### setting data sources      ######
-  data <- get("data", envir = .GlobalEnv)
+  data <- ICCP::feedShiny() #get("data", envir = .GlobalEnv)
   df <- as.data.frame(data$dataset)
   mdf <- as.data.frame(data$caves)
   exp <- as.data.frame(data$loggers)
   media_path <- system.file("www/images", package = "ICCP")
- 
+  chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
+  chelsa <- read.csv(chelsa_file_path)
+  print(nrow(chelsa))
+
   ###### style settings ######
   default_cave_colors <- c(
     "Skulls" = "#FF0000",
@@ -207,12 +210,13 @@ server <- function(input, output, session) {
 
   ###### map output ######
   output$map <- leaflet::renderLeaflet({
-    req(mdf)
+    req(mdf, exp)
 
-    leaflet::leaflet(mdf) %>%
+    leaflet::leaflet() %>%
       leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery) %>%
       leaflet::setView(lng = 35.1, lat = 31.4, zoom = 7)
   })
+
 
   ###### PHOTOS AND PDF ######
     # Preload photo and pdf paths
@@ -268,13 +272,13 @@ server <- function(input, output, session) {
     observeEvent(input$view_pdf, {
       req(input$view_pdf$cave)
 
-      cave_name <- gsub(" ", "_", input$view_pdf$cave) 
+      cave_name <- gsub(" ", "_", input$view_pdf$cave)
       filtered_pdfs <- list.files(media_path, full.names = TRUE, pattern = paste0(cave_name, ".*\\.pdf$"), ignore.case = TRUE)
 
       if (length(filtered_pdfs) > 0) {
-        
+
           utils::browseURL(filtered_pdfs[1])
-      
+
       } else {
         showModal(modalDialog(
           title = paste("No PDF for", cave_name),
@@ -602,7 +606,7 @@ server <- function(input, output, session) {
           xaxis = list(
             type = 'date',
             showgrid = FALSE,
-            rangeslider = list(visible = T),
+            #rangeslider = list(visible = T),
             rangeselector=list(
               buttons=list(
                 list(count=1, label="1d", step="day", stepmode="todate"),
@@ -683,6 +687,7 @@ server <- function(input, output, session) {
     ###### dynamic map layout ######
     observe({
       selected <- selected_caves()
+
       leaflet::leafletProxy("map") %>%
         leaflet::clearMarkers() %>%
         leaflet::addCircleMarkers(
@@ -724,6 +729,7 @@ server <- function(input, output, session) {
           lng = ~longitude,
           lat = ~latitude,
           label = ~as.character(name),
+          group = "mdf_points",
           labelOptions = leaflet::labelOptions(
             noHide = TRUE,
             textOnly = TRUE,
@@ -738,6 +744,7 @@ server <- function(input, output, session) {
           )
         )
     })
+
 
     ###### plot header coloring ######
     observeEvent(input$cave, {

@@ -1,0 +1,13 @@
+Daily Mean Near-Surface Air Temperature (K) and Precipitation (kg/ m2) was received thanks to CHELSA project (Karger et al., 2017). The data (Karger et al., 2021) was received for the main entrance coordinates of each cave.
+
+Coordinate System: "WGS 84"
+project: CHELSA
+source_id: CHELSA_V2.1
+version: 2.1
+institution_id: WSL
+frequency: day
+note: precipitation was bias corrected using the Global Precipitation Climatology Centre (GPCC) Full Data Monthly Product Version 2022 dataset (Schneider et al., 2022, DOI: 10.5676/DWD_GPCC/FD_M_V2022_025)
+
+Karger, D.N., Conrad, O., Böhner, J., Kawohl, T., Kreft, H., Soria-Auza, R.W., Zimmermann, N.E., Linder, P., Kessler, M. (2017). Climatologies at high resolution for the Earth land surface areas. Scientific Data. 4 170122. https://doi.org/10.1038/sdata.2017.122
+
+Karger D.N., Conrad, O., Böhner, J., Kawohl, T., Kreft, H., Soria-Auza, R.W., Zimmermann, N.E,, Linder, H.P., Kessler, M. (2021) Climatologies at high resolution for the earth’s land surface areas, Version 2.1. EnviDat. https://dx.doi.org/10.16904/envidat.228.v2.1

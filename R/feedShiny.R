@@ -88,10 +88,13 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     loggers <- data.frame(
         cave_id = apply(RNetCDF::var.get.nc(nc, "logger_cave_mapping"), 1, function(x) which(x == 1)),
         logger_id = RNetCDF::var.get.nc(nc, "logger"),
-        light_zone = tolower(RNetCDF::var.get.nc(nc, "Lighting_Zone"))
+        light_zone = tolower(RNetCDF::var.get.nc(nc, "Lighting_Zone")),
+        latitude = RNetCDF::var.get.nc(nc, "Logger_Latitude"),
+        longitude = RNetCDF::var.get.nc(nc, "Logger_Longitude")
     ) %>%
     dplyr::left_join( caves[,1:2], by = c("cave_id" = "id") ) %>%
-    dplyr::select(cave_id, logger_id, cave_name = name,  light_zone)
+    dplyr::select(cave_id, logger_id, cave_name = name, light_zone, latitude, longitude)
+
     loggers_mapper <-  loggers %>% dplyr::select(logger_id, cave_id)
 
     ### Generating the dataset ###
