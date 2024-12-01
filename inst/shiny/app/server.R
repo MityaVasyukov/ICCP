@@ -4,15 +4,43 @@ server <- function(input, output, session) {
 
 #####     SETTINGS      #####
 
-  ###### setting data sources      ######
-  data <- ICCP::feedShiny() #get("data", envir = .GlobalEnv)
+  ######     setting data sources      ######
+  data <- get("data", envir = .GlobalEnv)#ICCP::feedShiny() #
   df <- as.data.frame(data$dataset)
   mdf <- as.data.frame(data$caves)
   exp <- as.data.frame(data$loggers)
   media_path <- system.file("www/images", package = "ICCP")
-  chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
-  chelsa <- read.csv(chelsa_file_path)
-  print(nrow(chelsa))
+
+  ######     adding CHELSA      ######
+    chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
+    chelsa <- read.csv(chelsa_file_path)
+
+
+    chelsa_rows <- unique(chelsa$name) %>%
+      dplyr::tibble(name = .) %>%
+      dplyr::mutate(
+        logger_id = NA_integer_,
+        light_zone = "CHELSA",
+      ) %>%
+      dplyr::left_join(mdf, by = "name",) %>%
+      dplyr::select(id, logger_id, name, light_zone, latitude, longitude) %>%
+      dplyr::rename(cave_name = name, cave_id = id)
+      
+    # View the updated data frame
+    exp <- rbind(exp,chelsa_rows)
+
+    # format CHELSA datase
+      chelsa <- chelsa %>%
+        tidyr::pivot_longer(cols = c(tas, pr), names_to = "var", values_to = "val") %>%
+        dplyr::mutate(zone = "CHELSA") %>%
+        dplyr::rename(datetime = date, cave_name = name) %>%
+        dplyr::select(datetime, cave_name, zone, var, val)
+    
+    df <- rbind(df, chelsa)
+
+
+
+
 
   ###### style settings ######
   default_cave_colors <- c(
@@ -71,7 +99,7 @@ server <- function(input, output, session) {
 
     freeze_inputs <- c("variable", "cave", "zone", "plot_mode", "units", "resolution", "year", "season", "month", "day", "dateRange", "time")
     lapply(freeze_inputs, function(input_var) freezeReactiveValue(input, input_var))
-    updateSelectInput(session, "variable", choices = unique(df$var), selected = unique(df$var))
+    updateSelectInput(session, "variable", choices = unique(df$var), selected = c("tm", "rh", "dp") ) # ex: selected = unique(df$var)
     updateSelectizeInput(session, "cave", choices = mdf$name, selected = selected_caves())
     updateSelectizeInput(session, "zone", choices = unique(exp$light_zone), selected = "dark", options = list(maxItems = 1))
     updateSelectInput(session, "plot_mode", choices = c("line", "smooth"), selected = "line")
@@ -194,7 +222,7 @@ server <- function(input, output, session) {
 
     if (input$units == "C°") {
       data <- data %>%
-        dplyr::mutate(val = ifelse(var != "rh", val - 273.15, val))
+        dplyr::mutate(val = ifelse(!var %in% c("rh", "pr") , val - 273.15, val))
     }
 
     if (input$flatten) {
@@ -209,13 +237,13 @@ server <- function(input, output, session) {
 
 
   ###### map output ######
-  output$map <- leaflet::renderLeaflet({
-    req(mdf, exp)
+    output$map <- leaflet::renderLeaflet({
+      req(mdf, exp)
 
-    leaflet::leaflet() %>%
-      leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery) %>%
-      leaflet::setView(lng = 35.1, lat = 31.4, zoom = 7)
-  })
+      leaflet::leaflet() %>%
+        leaflet::addProviderTiles(leaflet::providers$Esri.WorldImagery) %>%
+        leaflet::setView(lng = 35.1, lat = 31.4, zoom = 7)
+    })
 
 
   ###### PHOTOS AND PDF ######
@@ -539,7 +567,7 @@ server <- function(input, output, session) {
 
   ###### data plotting ######
   output$dataplot <- plotly::renderPlotly({
-
+    print(nrow(transformed_data()))
     data <- transformed_data()
 
     if (is.null(data) || nrow(data) == 0) {
@@ -551,7 +579,7 @@ server <- function(input, output, session) {
         plotly::layout(title = "No Data", xaxis = list(visible = FALSE), yaxis = list(visible = FALSE))
       return(fig)
     } else {
-      data$datetime <-  as.POSIXct(data$datetime)
+      data$datetime <- as.POSIXct(data$datetime)
 
       plot_builder <- function(df, var) {
         varname <- switch(
@@ -559,6 +587,8 @@ server <- function(input, output, session) {
           "tm" = paste("Temperature,", input$units),
           "rh" = "Relative humidity, %",
           "dp" = paste("Dew point,", input$units),
+          "tas" = paste("Mean Air Temperature (CHELSA),", input$units),
+          "pr" = "Precipitation, kg/ m2 (CHELSA)",
           "unknown"
         )
 
@@ -581,6 +611,8 @@ server <- function(input, output, session) {
           if (var == "tm") { ggplot2::ylab(paste("Temperature,", input$units)) }
         else if (var == "dp") { ggplot2::ylab(paste("Dew point,", input$units)) }
         else if (var == "rh") { ggplot2::ylab("Relative humidity, %") }
+        else if (var == "tas") { ggplot2::ylab(paste("Mean Air Temperature (CHELSA),", input$units)) }
+        else if (var == "pr") { ggplot2::ylab("Precipitation, kg/ m2 (CHELSA)") }
         else { ggplot2::ylab("Variable") }
 
         if ("line" %in% input$plot_mode) {
@@ -590,7 +622,7 @@ server <- function(input, output, session) {
           plot <- plot + ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))
         }
 
-        plotly::ggplotly(plot,  dynamicTicks = TRUE, height = input$height)
+        plotly::ggplotly(plot, dynamicTicks = TRUE, height = input$height)
       }
 
       plots <- lapply(input$variable, function(var) plot_builder(data, var))
