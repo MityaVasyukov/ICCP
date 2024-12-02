@@ -41,7 +41,7 @@ ui <- shinydashboard::dashboardPage(
     shinydashboard::dashboardSidebar(
       shinydashboard::sidebarMenu(
         shinydashboard::menuItem(
-          "Data filtering",
+          "Filters",
           tabName = "filtering",
           icon = icon("dashboard"),
           startExpanded=FALSE,
@@ -100,7 +100,7 @@ ui <- shinydashboard::dashboardPage(
           )
         ),
         shinydashboard::menuItem(
-          "Plot settings",
+          "Plot",
           tabName = "settings",
           icon = icon("dashboard"),
           startExpanded=FALSE,
@@ -147,6 +147,8 @@ ui <- shinydashboard::dashboardPage(
           tabName = "data",
           startExpanded=TRUE,
           icon = icon("chart-line"),
+          actionButton("view_description1", "Data file details"),
+          actionButton("view_description2", "CHELSA data details"),
           selectInput(
             inputId = "save_input",
             label = "Choose df to save",

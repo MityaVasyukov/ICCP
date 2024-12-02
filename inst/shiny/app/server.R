@@ -26,7 +26,7 @@ server <- function(input, output, session) {
       dplyr::select(id, logger_id, name, light_zone, latitude, longitude) %>%
       dplyr::rename(cave_name = name, cave_id = id)
       
-    # View the updated data frame
+
     exp <- rbind(exp,chelsa_rows)
 
     # format CHELSA datase
@@ -92,6 +92,18 @@ server <- function(input, output, session) {
       "font-style" = "italic"
     )
   )
+
+  show_file_description <- function(file_path) {
+    file_content <- readLines(file_path)
+    showModal(
+      modalDialog(
+        title = "File Description",
+        tags$pre(paste(file_content, collapse = "\n")),
+        easyClose = TRUE,
+        footer = modalButton("Close")
+      )
+    )
+  }
 
   ###### setting the list of choices and selected choices ######
   observe({
@@ -229,7 +241,6 @@ server <- function(input, output, session) {
       data <- ICCP::fitGam(data)
     }
 
-   # cat("transformed_data -- OK") # remove later
     return(data)
   }) #%>% bindEvent(filtered_data(), input$units, input$flatten)
 
@@ -567,7 +578,7 @@ server <- function(input, output, session) {
 
   ###### data plotting ######
   output$dataplot <- plotly::renderPlotly({
-    print(nrow(transformed_data()))
+
     data <- transformed_data()
 
     if (is.null(data) || nrow(data) == 0) {
@@ -806,5 +817,18 @@ server <- function(input, output, session) {
         updateSelectInput(session, "cave",  selected = selected_caves())
       }
     })
+
+    # Button observers
+    observeEvent(input$view_description1, {
+      file_path <- system.file("extdata", "israel_caves-2024.txt", package = "ICCP")
+      show_file_description(file_path)
+    })
+    
+    observeEvent(input$view_description2, {
+      file_path <- system.file("extdata", "caves_CHELSA.txt", package = "ICCP")
+      show_file_description(file_path)
+    })
+
+
 
 }

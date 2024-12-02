@@ -1,6 +1,5 @@
-1. do smth with metadata readability
-2. add shemes
-3. add photos
-4. deploy at Shiny server
-5. add logger location
-6. CHELSA and formula
+
+4. deploy Shiny server
+6. formula
+3. metadata (..., autocorrelation)
+4. variable switching observers for CHELSA
