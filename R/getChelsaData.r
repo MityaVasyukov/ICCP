@@ -9,9 +9,6 @@
 #'
 #' @examples
 
-library(Rchelsa)
-library(dplyr)
-
 get_CHELSA_for_Caves <- function() {
 
   data <- ICCP::feedShiny()
