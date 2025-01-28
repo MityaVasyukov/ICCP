@@ -4,16 +4,16 @@ server <- function(input, output, session) {
 
 #####     SETTINGS      #####
 
-  ######     setting data sources      ######
-  data <- get("data", envir = .GlobalEnv)#ICCP::feedShiny() #
-  df <- as.data.frame(data$dataset)
-  mdf <- as.data.frame(data$caves)
-  exp <- as.data.frame(data$loggers)
-  media_path <- system.file("www/images", package = "ICCP")
+######     setting data sources      ######
+data <- get("data", envir = .GlobalEnv)#ICCP::feedShiny() #
+df <- as.data.frame(data$dataset)
+mdf <- as.data.frame(data$caves)
+exp <- as.data.frame(data$loggers)
+media_path <- system.file("www/images", package = "ICCP")
 
-  ######     adding CHELSA      ######
-    chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
-    chelsa <- read.csv(chelsa_file_path)
+######     adding CHELSA      ######
+chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
+chelsa <- read.csv(chelsa_file_path)
 
 
     chelsa_rows <- unique(chelsa$name) %>%
@@ -25,7 +25,7 @@ server <- function(input, output, session) {
       dplyr::left_join(mdf, by = "name",) %>%
       dplyr::select(id, logger_id, name, light_zone, latitude, longitude) %>%
       dplyr::rename(cave_name = name, cave_id = id)
-      
+
 
     exp <- rbind(exp,chelsa_rows)
 
@@ -35,7 +35,7 @@ server <- function(input, output, session) {
         dplyr::mutate(zone = "CHELSA") %>%
         dplyr::rename(datetime = date, cave_name = name) %>%
         dplyr::select(datetime, cave_name, zone, var, val)
-    
+
     df <- rbind(df, chelsa)
 
 
@@ -257,55 +257,182 @@ server <- function(input, output, session) {
     })
 
 
-  ###### PHOTOS AND PDF ######
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ###### PHOTOS AND PDF ######
+
     # Preload photo and pdf paths
     photo_files <- reactive({
-      list.files(media_path, full.names = TRUE, pattern = "\\.(jpg|jpeg|png|gif)$", ignore.case = TRUE)
-    })
-
-    # Generate slickR object with photos
-    slick_photos <- reactive({
-      slickR(
-        photo_files(),
-        height = "100%",
-        width = "100%"
-      ) + settings(slidesToShow = 1, adaptiveHeight = TRUE)
-    })
-
-    observeEvent(input$view_photos, {
-      req(input$view_photos$cave)
-
-      cave_name <- gsub(" ", "_", input$view_photos$cave)
-      filtered_photos <- grep(cave_name, photo_files(), value = TRUE)
-
-      if (length(filtered_photos) > 0) {
-        showModal(modalDialog(
-          title = paste(input$view_photos$cave, "cave"),
-          size = "l",
-          easyClose = TRUE,
-          footer = NULL,
-          shinycssloaders::withSpinner(
-            slickR::slickROutput("photo_carousel", width = "100%", height = "500px"),
-            type = 4
-          )
-        ))
-
-        output$photo_carousel <- slickR::renderSlickR({
-          validate(
-            need(length(filtered_photos) > 0, "No images found for this cave.")
-          )
-          slickR::slickR(filtered_photos, height = 500, width = "100%") +
-            slickR::settings(slidesToShow = 1, adaptiveHeight = TRUE)
+        list.files(media_path, full.names = TRUE, pattern = "\\.(jpg|jpeg|png|gif)$", ignore.case = TRUE)
         })
-      } else {
-        shiny::showModal(modalDialog(
-          title = paste("No Photos for", cave_name),
-          easyClose = TRUE,
-          footer = NULL,
-          h4("There are no photos available for this cave.")
-        ))
-      }
+
+    getmeta <- function(path) {
+        fields_needed <- c("Artist", "Caption-Abstract", "DateCreated")
+        md <- exifr::read_exif(path, tags= fields_needed)
+        return(md)
+        }
+
+
+annotate_photo_virtual <- function(photo_path, artist_text, date_created, caption_abstract) {
+    
+        # Ensure text encoding is UTF-8
+    #caption_abstract <- gsub("’", "_", caption_abstract, fixed = TRUE)
+    # Read the image
+    image <- magick::image_read(photo_path)
+
+    # Get image dimensions
+    info <- magick::image_info(image)
+    img_width <- info$width
+    img_height <- info$height
+
+    # Adjust text size dynamically based on image width
+    text_size <- max(20, img_width * 0.025)  # Scale text based on width
+
+    # Wrap the caption_abstract into lines
+    wrapped_caption <- strwrap(caption_abstract, width = 70)
+
+    # Create a blank canvas for the overlay
+    text_overlay <- magick::image_blank(width = img_width, height = img_height, color = "transparent")
+
+    # Annotate each line of the caption separately
+    for (i in seq_along(wrapped_caption)) {
+        line <- wrapped_caption[i]
+        y_offset <- img_height * 0.9 - (i * text_size * 1.2)  # Adjust vertical spacing for each line
+
+        text_overlay <- magick::image_annotate(
+            text_overlay,
+            text = line,
+            size = text_size,
+            color = "blue",
+            gravity = "southwest",
+            location = sprintf("+50+%d", as.integer(y_offset))
+        )
+    }
+
+    # Add the artist and date text in the bottom right
+    bottom_right_text <- paste(artist_text, date_created, sep = "\n")
+    text_overlay <- magick::image_annotate(
+        text_overlay,
+        text = bottom_right_text,
+        size = text_size,
+        color = "blue",
+        gravity = "southeast",
+        location = "+20+10"
+    )
+
+    # Composite the text overlay onto the original image
+    image_with_text <- magick::image_composite(image, text_overlay, operator = "atop")
+
+    return(image_with_text)
+}
+
+
+    filtered_photos <- reactive({
+        req(input$view_photos$cave)
+        cave_name <- gsub(" ", "_", input$view_photos$cave)
+        files <- grep(cave_name, photo_files(), value = TRUE)
+        
+        # Fetch metadata only if files exist
+        if (length(files) > 0) {
+            meta_data <- getmeta(files)
+            if (!is.null(meta_data) && nrow(meta_data) > 0) {  # Ensure meta_data is valid
+                return(meta_data)
+                }
+            }
+
+        return(data.frame(SourceFile = character(0), Artist = character(0)))
+        })
+
+    output$carousel_photos <- renderUI({
+        
+        showNotification("GENERATING NEW PHOTOS", id = "55545", type = "warning", duration = NULL)
+        
+        photo_data <- filtered_photos()
+        print(photo_data)
+        req(nrow(photo_data) > 0)
+ 
+        # Annotate photos in memory
+        annotated_images <- lapply(seq_len(nrow(photo_data)), function(i) {
+            tryCatch({
+            annotate_photo_virtual(
+                photo_path = photo_data$SourceFile[i],
+                artist_text = photo_data$Artist[i],
+                date_created = photo_data$DateCreated[i],
+                caption_abstract = photo_data$`Caption-Abstract`[i]
+                )
+            }, error = function(e) {
+            # Handle any annotation issues (e.g., corrupted files)
+            NULL
+            })
+            })
+
+        # Filter out NULL results
+        annotated_images <- annotated_images[!sapply(annotated_images, is.null)]
+
+        # Convert annotated images to Base64 for inline display
+        annotated_images_base64 <- lapply(annotated_images, function(image) {
+            tryCatch({
+            image %>%
+                magick::image_write(format = "png") %>%
+                base64enc::dataURI(mime = "image/png")
+            }, error = function(e) {
+            NULL
+            })
+            })
+
+        annotated_images_base64 <- annotated_images_base64[!sapply(annotated_images_base64, is.null)]
+
+        req(length(annotated_images_base64) > 0) # Ensure valid images exist
+        removeNotification("55545")
+        # Generate HTML for displaying images one by one
+        tags$div(
+            style = "text-align: center; width: 100%;",
+            lapply(annotated_images_base64, function(img_src) {
+            tags$div(
+                style = "margin: 20px 0; text-align: center;",
+                tags$img(
+                src = img_src,
+                style = "max-width: 80%; height: auto; display: block; margin: 0 auto;" # Center image
+                )
+            )
+            })
+            )
+            
     })
+        
+    observeEvent(input$view_photos, {
+    # Ensure filtered_photos is valid before showing the modal
+        removeModal()
+       
+        showModal(modalDialog(
+            title = paste(input$view_photos$cave, "cave"),
+            size = "l",
+            easyClose = TRUE,
+            footer = NULL,
+            fade = TRUE,
+            shinycssloaders::withSpinner(
+            uiOutput("carousel_photos"), # Dynamically rendered content
+            type = 4,
+            proxy.height = "300px"
+            )
+        ))
+        })
+
 
     # PDF
     observeEvent(input$view_pdf, {
@@ -823,7 +950,7 @@ server <- function(input, output, session) {
       file_path <- system.file("extdata", "israel_caves-2024.txt", package = "ICCP")
       show_file_description(file_path)
     })
-    
+
     observeEvent(input$view_description2, {
       file_path <- system.file("extdata", "caves_CHELSA.txt", package = "ICCP")
       show_file_description(file_path)
