@@ -6,9 +6,9 @@ server <- function(input, output, session) {
 
 ######     setting data sources      ######
 #data <- get("data", envir = .GlobalEnv)#ICCP::feedShiny() #
-df <- as.data.frame(data$dataset)
-mdf <- as.data.frame(data$caves)
-exp <- as.data.frame(data$loggers)
+df <- as.data.frame(.ICCP_env$data$dataset)
+mdf <- as.data.frame(.ICCP_env$data$caves)
+exp <- as.data.frame(.ICCP_env$data$loggers)
 media_path <- system.file("www/images", package = "ICCP")
 
 ######     adding CHELSA      ######
@@ -290,7 +290,7 @@ chelsa <- read.csv(chelsa_file_path)
 
     # Annotate photos
     annotate_photo_virtual <- function(photo_path, artist_text, date_created, caption_abstract) {
-      
+
         # Read the image
         image <- magick::image_read(photo_path)
 
@@ -348,7 +348,7 @@ chelsa <- read.csv(chelsa_file_path)
         req(input$view_photos$cave)
         cave_name <- gsub(" ", "_", input$view_photos$cave)
         files <- grep(cave_name, photo_files(), value = TRUE)
-        
+
         # Fetch metadata only if files exist
         if (length(files) > 0) {
             meta_data <- getmeta(files)
@@ -360,13 +360,13 @@ chelsa <- read.csv(chelsa_file_path)
 
     # Generate the photo output
     output$carousel_photos <- renderUI({
-        
+
         # Run notification message
         showNotification("FETCHING PHOTOS", id = "fetching_photos", type = "warning", duration = NULL)
-        
+
         photo_data <- filtered_photos()
         req(nrow(photo_data) > 0)
- 
+
         # Annotate photos in memory
         annotated_images <- lapply(seq_len(nrow(photo_data)), function(i) {
             annotate_photo_virtual(
@@ -391,7 +391,7 @@ chelsa <- read.csv(chelsa_file_path)
 
         # Generate HTML for displaying images one by one
         tags$div(
-          #  style = "height: 100vh; width: 100vw; overflow-y: auto; background-color: black; 
+          #  style = "height: 100vh; width: 100vw; overflow-y: auto; background-color: black;
          #        display: flex; flex-direction: column; align-items: center; justify-content: center;",
             lapply(annotated_images_base64, function(img_src) {
                 tags$div(
@@ -404,8 +404,8 @@ chelsa <- read.csv(chelsa_file_path)
                 })
             )
         })
-    
-    # Show the modal window 
+
+    # Show the modal window
     observeEvent(input$view_photos, {
         removeModal()
         showModal(

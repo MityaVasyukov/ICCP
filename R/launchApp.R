@@ -26,11 +26,14 @@
 #' launchApp()
 #' }
 #'
+
+.ICCP_env <- new.env(parent = emptyenv())
+
 launchApp <- function() {
-   data_exists <- !is.null(get0("data", envir = .GlobalEnv, inherits = FALSE))
-  if (!data_exists) {
+
+  if (!exists("data", envir = .ICCP_env)) {
     message("Data not found. Fetching data using feedShiny()...")
-    assign("data", feedShiny(), envir = .GlobalEnv)
+    .ICCP_env$data <- feedShiny()
   }
   shiny::runApp(system.file("shiny/app", package = "ICCP"))
 }
