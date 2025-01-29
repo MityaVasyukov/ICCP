@@ -5,7 +5,7 @@ server <- function(input, output, session) {
 #####     SETTINGS      #####
 
 ######     setting data sources      ######
-data <- get("data", envir = .GlobalEnv)#ICCP::feedShiny() #
+#data <- get("data", envir = .GlobalEnv)#ICCP::feedShiny() #
 df <- as.data.frame(data$dataset)
 mdf <- as.data.frame(data$caves)
 exp <- as.data.frame(data$loggers)

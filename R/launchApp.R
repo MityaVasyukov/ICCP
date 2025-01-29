@@ -18,17 +18,19 @@
 #' @importFrom shinycssloaders withSpinner
 #' @importFrom magrittr %>%
 #' @importFrom usethis use_pipe
-#' @import slickR
+#' @import magick
+#' @import exifr
 #'
 #' @examples
 #' \dontrun{
-#' data <- feedShiny()
 #' launchApp()
 #' }
 #'
 launchApp <- function() {
-  if (!exists("data", envir = .GlobalEnv)) {
-    stop("data hasn't been added tp the global environment, please, run feedShiny()")
+   data_exists <- !is.null(get0("data", envir = .GlobalEnv, inherits = FALSE))
+  if (!data_exists) {
+    message("Data not found. Fetching data using feedShiny()...")
+    assign("data", feedShiny(), envir = .GlobalEnv)
   }
   shiny::runApp(system.file("shiny/app", package = "ICCP"))
 }
