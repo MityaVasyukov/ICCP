@@ -290,8 +290,6 @@ chelsa <- read.csv(chelsa_file_path)
 
 annotate_photo_virtual <- function(photo_path, artist_text, date_created, caption_abstract) {
     
-        # Ensure text encoding is UTF-8
-    #caption_abstract <- gsub("’", "_", caption_abstract, fixed = TRUE)
     # Read the image
     image <- magick::image_read(photo_path)
 
@@ -312,25 +310,28 @@ annotate_photo_virtual <- function(photo_path, artist_text, date_created, captio
     # Annotate each line of the caption separately
     for (i in seq_along(wrapped_caption)) {
         line <- wrapped_caption[i]
-        y_offset <- img_height * 0.9 - (i * text_size * 1.2)  # Adjust vertical spacing for each line
+        y_offset <- img_height*0.98 - (i * text_size * 1.2)  # Adjust vertical spacing for each line
 
         text_overlay <- magick::image_annotate(
             text_overlay,
             text = line,
             size = text_size,
-            color = "blue",
+            color = "black",
+            boxcolor = "white",
+            kerning = 0,
             gravity = "southwest",
             location = sprintf("+50+%d", as.integer(y_offset))
         )
     }
 
     # Add the artist and date text in the bottom right
-    bottom_right_text <- paste(artist_text, date_created, sep = "\n")
+    bottom_right_text <- paste0("Photo by ", artist_text, " (", date_created, ")")
     text_overlay <- magick::image_annotate(
         text_overlay,
         text = bottom_right_text,
         size = text_size,
-        color = "blue",
+        color = "gray",
+        boxcolor = "white",
         gravity = "southeast",
         location = "+20+10"
     )
@@ -401,13 +402,13 @@ annotate_photo_virtual <- function(photo_path, artist_text, date_created, captio
         removeNotification("55545")
         # Generate HTML for displaying images one by one
         tags$div(
-            style = "text-align: center; width: 100%;",
+            style = "text-align: center; height: 90vh;",
             lapply(annotated_images_base64, function(img_src) {
             tags$div(
                 style = "margin: 20px 0; text-align: center;",
                 tags$img(
                 src = img_src,
-                style = "max-width: 80%; height: auto; display: block; margin: 0 auto;" # Center image
+                style = "max-width: 80%; height: 90vh; display: block; margin: 0 auto;" # Center image
                 )
             )
             })
@@ -428,8 +429,9 @@ annotate_photo_virtual <- function(photo_path, artist_text, date_created, captio
             shinycssloaders::withSpinner(
             uiOutput("carousel_photos"), # Dynamically rendered content
             type = 4,
-            proxy.height = "300px"
-            )
+            proxy.height = "500px"
+            ),
+            style = "background-color: pink; color: pink; width: 90vw;  left: -10vw; "
         ))
         })
 
