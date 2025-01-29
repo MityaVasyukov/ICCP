@@ -2,10 +2,13 @@
 
 export("%>%")
 export(.ICCP_env)
+export(annotatePhoto)
 export(feedShiny)
 export(fitGam)
 export(formatSystime)
+export(getMeta)
 export(getTimeStamp)
+export(showFileDescription)
 import(RNetCDF)
 import(dplyr)
 import(exifr)
