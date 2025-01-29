@@ -276,73 +276,74 @@ chelsa <- read.csv(chelsa_file_path)
 
     ###### PHOTOS AND PDF ######
 
-    # Preload photo and pdf paths
+    # Preload photo paths
     photo_files <- reactive({
         list.files(media_path, full.names = TRUE, pattern = "\\.(jpg|jpeg|png|gif)$", ignore.case = TRUE)
         })
 
+    # Get metadata
     getmeta <- function(path) {
         fields_needed <- c("Artist", "Caption-Abstract", "DateCreated")
-        md <- exifr::read_exif(path, tags= fields_needed)
+        md <- exifr::read_exif(path, tags = fields_needed)
         return(md)
         }
 
+    # Annotate photos
+    annotate_photo_virtual <- function(photo_path, artist_text, date_created, caption_abstract) {
+      
+        # Read the image
+        image <- magick::image_read(photo_path)
 
-annotate_photo_virtual <- function(photo_path, artist_text, date_created, caption_abstract) {
-    
-    # Read the image
-    image <- magick::image_read(photo_path)
+        # Get image dimensions
+        info <- magick::image_info(image)
+        img_width <- info$width
+        img_height <- info$height
 
-    # Get image dimensions
-    info <- magick::image_info(image)
-    img_width <- info$width
-    img_height <- info$height
+        # Adjust text size dynamically based on image width
+        text_size <- max(20, img_width * 0.025)
 
-    # Adjust text size dynamically based on image width
-    text_size <- max(20, img_width * 0.025)  # Scale text based on width
+        # Wrap the caption_abstract into lines
+        wrapped_caption <- strwrap(caption_abstract, width = 70)
 
-    # Wrap the caption_abstract into lines
-    wrapped_caption <- strwrap(caption_abstract, width = 70)
+        # Create a blank canvas for the overlay
+        text_overlay <- magick::image_blank(width = img_width, height = img_height, color = "transparent")
 
-    # Create a blank canvas for the overlay
-    text_overlay <- magick::image_blank(width = img_width, height = img_height, color = "transparent")
+        # Annotate each line of the caption separately
+        for (i in seq_along(wrapped_caption)) {
+            line <- wrapped_caption[i]
+            y_offset <- img_height * 0.98 - (i * text_size * 1.2)  # Adjust vertical spacing for each line
 
-    # Annotate each line of the caption separately
-    for (i in seq_along(wrapped_caption)) {
-        line <- wrapped_caption[i]
-        y_offset <- img_height*0.98 - (i * text_size * 1.2)  # Adjust vertical spacing for each line
+            text_overlay <- magick::image_annotate(
+                text_overlay,
+                text = line,
+                size = text_size,
+                color = "black",
+                boxcolor = "white",
+                kerning = 0,
+                gravity = "southwest",
+                location = sprintf("+50+%d", as.integer(y_offset))
+            )
+        }
 
+        # Add the credentials in the bottom right
+        bottom_right_text <- paste0("Photo by ", artist_text, " (", date_created, ")")
         text_overlay <- magick::image_annotate(
             text_overlay,
-            text = line,
+            text = bottom_right_text,
             size = text_size,
-            color = "black",
+            color = "gray",
             boxcolor = "white",
-            kerning = 0,
-            gravity = "southwest",
-            location = sprintf("+50+%d", as.integer(y_offset))
+            gravity = "southeast",
+            location = "+20+10"
         )
+
+        # Composite the text overlay onto the original image
+        image_with_text <- magick::image_composite(image, text_overlay, operator = "atop")
+
+        return(image_with_text)
     }
 
-    # Add the artist and date text in the bottom right
-    bottom_right_text <- paste0("Photo by ", artist_text, " (", date_created, ")")
-    text_overlay <- magick::image_annotate(
-        text_overlay,
-        text = bottom_right_text,
-        size = text_size,
-        color = "gray",
-        boxcolor = "white",
-        gravity = "southeast",
-        location = "+20+10"
-    )
-
-    # Composite the text overlay onto the original image
-    image_with_text <- magick::image_composite(image, text_overlay, operator = "atop")
-
-    return(image_with_text)
-}
-
-
+    # Filter photos based on the selection
     filtered_photos <- reactive({
         req(input$view_photos$cave)
         cave_name <- gsub(" ", "_", input$view_photos$cave)
@@ -351,88 +352,77 @@ annotate_photo_virtual <- function(photo_path, artist_text, date_created, captio
         # Fetch metadata only if files exist
         if (length(files) > 0) {
             meta_data <- getmeta(files)
-            if (!is.null(meta_data) && nrow(meta_data) > 0) {  # Ensure meta_data is valid
-                return(meta_data)
-                }
+            if (!is.null(meta_data) && nrow(meta_data) > 0) { return(meta_data) }
             }
 
         return(data.frame(SourceFile = character(0), Artist = character(0)))
         })
 
+    # Generate the photo output
     output$carousel_photos <- renderUI({
         
-        showNotification("GENERATING NEW PHOTOS", id = "55545", type = "warning", duration = NULL)
+        # Run notification message
+        showNotification("FETCHING PHOTOS", id = "fetching_photos", type = "warning", duration = NULL)
         
         photo_data <- filtered_photos()
-        print(photo_data)
         req(nrow(photo_data) > 0)
  
         # Annotate photos in memory
         annotated_images <- lapply(seq_len(nrow(photo_data)), function(i) {
-            tryCatch({
             annotate_photo_virtual(
                 photo_path = photo_data$SourceFile[i],
                 artist_text = photo_data$Artist[i],
                 date_created = photo_data$DateCreated[i],
                 caption_abstract = photo_data$`Caption-Abstract`[i]
                 )
-            }, error = function(e) {
-            # Handle any annotation issues (e.g., corrupted files)
-            NULL
             })
-            })
-
-        # Filter out NULL results
-        annotated_images <- annotated_images[!sapply(annotated_images, is.null)]
 
         # Convert annotated images to Base64 for inline display
         annotated_images_base64 <- lapply(annotated_images, function(image) {
-            tryCatch({
             image %>%
                 magick::image_write(format = "png") %>%
-                base64enc::dataURI(mime = "image/png")
-            }, error = function(e) {
-            NULL
-            })
+                    base64enc::dataURI(mime = "image/png")
             })
 
-        annotated_images_base64 <- annotated_images_base64[!sapply(annotated_images_base64, is.null)]
+        req(length(annotated_images_base64) > 0)
 
-        req(length(annotated_images_base64) > 0) # Ensure valid images exist
-        removeNotification("55545")
+        # Switch of the notification message
+        removeNotification("fetching_photos")
+
         # Generate HTML for displaying images one by one
         tags$div(
-            style = "text-align: center; height: 90vh;",
+          #  style = "height: 100vh; width: 100vw; overflow-y: auto; background-color: black; 
+         #        display: flex; flex-direction: column; align-items: center; justify-content: center;",
             lapply(annotated_images_base64, function(img_src) {
-            tags$div(
-                style = "margin: 20px 0; text-align: center;",
-                tags$img(
-                src = img_src,
-                style = "max-width: 80%; height: 90vh; display: block; margin: 0 auto;" # Center image
+                tags$div(
+                    style = "text-align: center; background-color: black; ",
+                    tags$img(
+                        src = img_src,
+                        style = "max-height: 95%; width: auto; max-width: 90%; margin-bottom: 50px; border-radius: 5px; outline: 1px solid rgba(158, 158, 158, 0.8); box-shadow: 0px 0px 40px rgba(158, 158, 158, 0.3);"
+                        )
+                    )
+                })
+            )
+        })
+    
+    # Show the modal window 
+    observeEvent(input$view_photos, {
+        removeModal()
+        showModal(
+            modalDialog(
+                title = paste(input$view_photos$cave, "cave"),
+                size = "l",
+                easyClose = TRUE,
+                footer = NULL,
+                fade = TRUE,
+                shinycssloaders::withSpinner(
+                    uiOutput("carousel_photos"),
+                    type = 4,
+                    proxy.height = "50vh",
+                    ),
+                style = "background-color: black; box-shadow: 0px 30px 30px rgba(0, 0, 0, 0.6); "
                 )
             )
-            })
-            )
-            
-    })
-        
-    observeEvent(input$view_photos, {
-    # Ensure filtered_photos is valid before showing the modal
-        removeModal()
-       
-        showModal(modalDialog(
-            title = paste(input$view_photos$cave, "cave"),
-            size = "l",
-            easyClose = TRUE,
-            footer = NULL,
-            fade = TRUE,
-            shinycssloaders::withSpinner(
-            uiOutput("carousel_photos"), # Dynamically rendered content
-            type = 4,
-            proxy.height = "500px"
-            ),
-            style = "background-color: pink; color: pink; width: 90vw;  left: -10vw; "
-        ))
         })
 
 
