@@ -6,6 +6,6 @@
 #' @examples
 #' formatSystime()
 formatSystime <- function() {
-  now <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+  now <- format(Sys.time(), "%Y-%m-%d %H:%M:%S", tz = "UTC")
   return(now)
 }

@@ -15,7 +15,6 @@ Launches a Shiny app to explore Israeli cave climate data.
 }
 \examples{
 \dontrun{
-data <- feedShiny()
 launchApp()
 }
 
