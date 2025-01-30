@@ -5,7 +5,7 @@
 #' This function is primarily invoked for its side effect of launching a Shiny app.
 #' It does not return a value but will run the app until it is closed by the user.
 #'
-#' @export
+
 #' @import shiny
 #' @import shinydashboard
 #' @importFrom shinyjs useShinyjs extendShinyjs
@@ -26,10 +26,9 @@
 #' launchApp()
 #' }
 #'
-
-
+#' @export
+.ICCP_env <- new.env(parent = emptyenv())
 launchApp <- function() {
-  .ICCP_env <- new.env(parent = emptyenv())
 
   if (!exists("data", envir = .ICCP_env)) {
     message("Data not found. Fetching data using feedShiny()...")
