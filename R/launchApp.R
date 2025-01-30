@@ -27,9 +27,9 @@
 #' }
 #'
 
-.ICCP_env <- new.env(parent = emptyenv())
 
 launchApp <- function() {
+  .ICCP_env <- new.env(parent = emptyenv())
 
   if (!exists("data", envir = .ICCP_env)) {
     message("Data not found. Fetching data using feedShiny()...")
