@@ -28,6 +28,7 @@
 #'
 #' @export
 .ICCP_env <- new.env(parent = emptyenv())
+#' @export
 launchApp <- function() {
 
   if (!exists("data", envir = .ICCP_env)) {
