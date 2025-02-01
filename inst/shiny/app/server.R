@@ -3,13 +3,15 @@ server <- function(input, output, session) {
     #####   SETTINGS   #####
 
         ######   Setting data   ######
-            if (!exists("data", envir = ICCP:::.ICCP_env)) {
-              stop("Error: .ICCP_env$data does not exist. Ensure launchApp() initializes the environment.")
-              }
-            df <- as.data.frame(ICCP:::.ICCP_env$data$dataset)
-            mdf <- as.data.frame(ICCP:::.ICCP_env$data$caves)
-            exp <- as.data.frame(ICCP:::.ICCP_env$data$loggers)
-            media_path <- system.file("www/images", package = "ICCP")
+  if (!exists(".ICCP_env", envir = asNamespace("ICCP"))) {
+    stop("Error: .ICCP_env does not exist in ICCP namespace.")
+  }
+  local_env <- get(".ICCP_env", envir = asNamespace("ICCP"))
+
+  # 2. Use that local_env to build your data frames
+  df  <- as.data.frame(local_env$data$dataset)
+  mdf <- as.data.frame(local_env$data$caves)
+  exp <- as.data.frame(local_env$data$loggers)
 
         ######   Binding CHELSA data   ######
 
