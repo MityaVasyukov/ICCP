@@ -19,10 +19,10 @@ throughout each cave. The measurements were taken hourly from 2019-2021.
 ## Installation
 
 Download and install [R and
-Rstudio](https://posit.co/download/rstudio-desktop). We recommend using
+RStudio](https://posit.co/download/rstudio-desktop). We recommend using
 RStudio, since it works faster with the application.
 
-Run following commands:
+Run the following commands:
 
 ``` r
 install.packages("remotes")
@@ -32,7 +32,7 @@ install_github("MityaVasyukov/ICCP@main")
 
 ## Usage
 
-Run following commands:
+Run the following commands:
 
 ``` r
 library(ICCP)
