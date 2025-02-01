@@ -515,7 +515,7 @@ server <- function(input, output, session) {
                 # Plot the table
                 plot2 <-
                     ggplot2::ggplot(presence_table) +
-                    ggplot2::geom_tile(aes(x = zone, y = cave_name, fill = present), color = "white", alpha = alpha) +
+                    ggplot2::geom_tile(ggplot2::aes(x = zone, y = cave_name, fill = present), color = "white", alpha = alpha) +
                     ggplot2::scale_fill_manual(
                         values = zone_colors
                     ) +
