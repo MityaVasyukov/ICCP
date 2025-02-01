@@ -30,8 +30,7 @@ launchApp <- function() {
   if (!exists("data", envir = .ICCP_env)) {
     message("Fetching data using feedShiny()...")
     .ICCP_env$data <- feedShiny()
-  }
+    }
+
   shiny::runApp(system.file("shiny/app", package = "ICCP"))
 }
-
-.ICCP_env <- new.env(parent = emptyenv())

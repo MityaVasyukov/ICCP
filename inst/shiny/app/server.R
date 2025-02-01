@@ -3,8 +3,9 @@ server <- function(input, output, session) {
     #####   SETTINGS   #####
 
         ######   Setting data   ######
-
-            #data <- get("data", envir = .GlobalEnv)
+            if (!exists(".ICCP_env")) {
+              stop("Error: .ICCP_env does not exist. Ensure launchApp() initializes the environment.")
+            }
             df <- as.data.frame(.ICCP_env$data$dataset)
             mdf <- as.data.frame(.ICCP_env$data$caves)
             exp <- as.data.frame(.ICCP_env$data$loggers)
@@ -468,7 +469,7 @@ server <- function(input, output, session) {
                 dplyr::arrange(cave_name, desc(duration))
 
                 # Generate the plot
-                plot1 <- 
+                plot1 <-
                     ggplot2::ggplot(agdf) +
                     ggplot2::geom_rect(
                         ggplot2::aes(
@@ -575,7 +576,7 @@ server <- function(input, output, session) {
             observeEvent(input$cave, {
                 lapply(input$cave, function(cave) {
                     cave_id <- gsub(" ", "_", cave)
-                    
+
                     observeEvent(input[[paste0(cave_id, "_color")]], {
                         new_color <- input[[paste0(cave_id, "_color")]]
                         colors <- cave_colors()
@@ -842,7 +843,7 @@ server <- function(input, output, session) {
                         showNotification("No data selected for saving.", type = "error")
                         return(NULL)
                         }
-                    
+
                     showNotification("Saving data, please wait...", type = "message", duration = NULL)
                     write.csv(data_to_save, file, row.names = FALSE)
                     showNotification("Data saved successfully!", type = "message")
@@ -853,7 +854,7 @@ server <- function(input, output, session) {
 
         ######   'Selected caves' dynamic updating   ######
             observeEvent(input$cave, {
-                selected_caves(input$cave) 
+                selected_caves(input$cave)
                 }, ignoreInit = TRUE)
 
             observeEvent(input$add_cave, {
