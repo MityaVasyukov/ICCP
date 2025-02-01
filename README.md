@@ -30,6 +30,10 @@ library(remotes)
 install_github("MityaVasyukov/ICCP@main")
 ```
 
+We also have a video of installation process and app observing for you:
+[![Installation
+Tutorial](https://img.youtube.com/vi/F7H83Bj_1E8/0.jpg)](https://youtu.be/F7H83Bj_1E8 "Watch on YouTube")
+
 ## Usage
 
 Run the following commands:
