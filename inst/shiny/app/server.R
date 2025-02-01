@@ -12,7 +12,7 @@ server <- function(input, output, session) {
   df  <- as.data.frame(local_env$data$dataset)
   mdf <- as.data.frame(local_env$data$caves)
   exp <- as.data.frame(local_env$data$loggers)
-
+  media_path <- system.file("www/images", package = "ICCP")
         ######   Binding CHELSA data   ######
 
             chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
