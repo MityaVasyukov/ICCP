@@ -20,7 +20,7 @@ throughout each cave. The measurements were taken hourly from 2019-2021.
 
 Download and install [R and
 RStudio](https://posit.co/download/rstudio-desktop). We recommend using
-RStudio, since it works faster with the application.
+RStudio, since it works faster with the RStudio’s browser window.
 
 Run the following commands:
 

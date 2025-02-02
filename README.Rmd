@@ -24,7 +24,7 @@ The package provides an example of climatic data exploring within a Shiny Applic
 ## Installation
 
 Download and install [R and RStudio](https://posit.co/download/rstudio-desktop).
-We recommend using RStudio, since it works faster with the application.
+We recommend using RStudio, since it works faster with the RStudio's browser window.
 
 Run the following commands:
 ``` r
