@@ -10,9 +10,9 @@ Under development.
 ## Overview
 
 The package provides an example of climatic data exploring within a
-Shiny Application. The data (`israel_caves-2024.nc`) origins from
+Shiny Application. The data (`israel_caves-2024.nc`) origin from
 climatic sensors set in 12 caves located in Israel. The climate data
-(temperature, relative humidity, and dew point) was collected from
+(temperature, relative humidity, and dew point) were collected from
 loggers set in various lighting zones (dark, light, twilight or control)
 throughout each cave. The measurements were taken hourly from 2019-2021.
 
