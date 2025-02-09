@@ -1,49 +1,69 @@
 ui <- shinydashboard::dashboardPage(
     shinydashboard::dashboardHeader(
-      title = "Israel Cave Climate Project",
-      tags$li(
-        id = "nav-caves",
-        class="dropdown",
-        tags$a(
-          href = "#",
-          "Caves",
-          onclick = "handleNavClick('firstRow');"
+        title = "Israel Cave Climate Project",
+        tags$li(
+            id = "nav-button_filter",
+            class="dropdown action-button",
+            actionButton(
+                inputId = "reset_app",
+                label = NULL,
+                title = "Restore default settings",
+                icon = icon("refresh")
+                )
+            ),
+        tags$li(
+            id = "nav-button_reload",
+            class="dropdown action-button",
+            actionButton(
+                inputId = "apply_filter",
+                label = NULL,
+                title = "Apply filter",
+                icon = icon("filter")
+                )
+            ),
+        tags$li(
+            id = "nav-caves",
+            class="dropdown",
+            tags$a(
+            href = "#",
+            "Caves",
+            onclick = "handleNavClick('firstRow');"
+            )
+        ),
+        tags$li(
+            id = "nav-loggers",
+            class="dropdown",
+            tags$a(
+            href = "#",
+            "Loggers",
+            onclick = "handleNavClick('secondRow');"
+            )
+        ),
+        tags$li(
+            id = "nav-measurements",
+            class="dropdown",
+            tags$a(
+            href = "#",
+            "Measurements",
+            onclick = "handleNavClick('thirdRow');"
+            )
+        ),
+        tags$li(
+            id = "plotHeaderContainer",
+            class="dropdown",
+            conditionalPanel(
+            condition = "input.show_3Row",
+            id = "plotHeader",
+            uiOutput("header")
+            )
         )
-      ),
-      tags$li(
-        id = "nav-loggers",
-        class="dropdown",
-        tags$a(
-          href = "#",
-          "Loggers",
-          onclick = "handleNavClick('secondRow');"
-        )
-      ),
-      tags$li(
-        id = "nav-measurements",
-        class="dropdown",
-        tags$a(
-          href = "#",
-          "Measurements",
-          onclick = "handleNavClick('thirdRow');"
-        )
-      ),
-      tags$li(
-        id = "plotHeaderContainer",
-        class="dropdown",
-        conditionalPanel(
-          condition = "input.show_3Row",
-          id = "plotHeader",
-          uiOutput("header")
-        )
-      )
-    ),
+        ),
     shinydashboard::dashboardSidebar(
       shinydashboard::sidebarMenu(
         shinydashboard::menuItem(
           "Filters",
           tabName = "filtering",
-          icon = icon("dashboard"),
+          icon = icon("chart-line"),
           startExpanded=FALSE,
           radioButtons(
             inputId = "selection_mode",
@@ -102,7 +122,7 @@ ui <- shinydashboard::dashboardPage(
         shinydashboard::menuItem(
           "Plot",
           tabName = "settings",
-          icon = icon("dashboard"),
+          icon = icon("wrench"),
           startExpanded=FALSE,
           selectInput(
             inputId = "resolution",
@@ -146,7 +166,7 @@ ui <- shinydashboard::dashboardPage(
           "Data",
           tabName = "data",
           startExpanded=TRUE,
-          icon = icon("chart-line"),
+          icon = icon("floppy-disk"),
           actionButton("view_description1", "Data file details"),
           actionButton("view_description2", "CHELSA data details"),
           selectInput(
@@ -192,13 +212,28 @@ ui <- shinydashboard::dashboardPage(
           ))
         ),
         tags$style(HTML("
+          .pending-changes {
+            background-color: #dc3545 !important; /* or any color you prefer */
+            color: white !important;
+            border-color: #dc3545 !important;
+          }
+          dropdown .action-button {
+            padding: 0 !important;
+            margin: 0 auto !important;
+            padding-top: 10px !important;
+          }
           .main-sidebar {
             position: fixed;
             max-height: 100vh;
             overflow: auto;
           }
+          .navbar-custom-menu > .navbar-nav > li {
+            display: flex;
+            align-items: center;
+            }
           .main-header {
-            height: 50px;
+            height: 50px !important;
+            margin-bottom: 0 !important;
             position: fixed;
             width: 100vw;
           }
@@ -213,11 +248,27 @@ ui <- shinydashboard::dashboardPage(
             justify-content: space-between !important;
             width: 100% !important;
           }
-          li a {
-            font-size: 18px;
-              padding-top: 15px;
-              padding-bottom: 15px;
-          }
+          li {
+            font-size: 15px;
+            padding: 0 !important;
+            padding-top: 15px;
+            padding-bottom: 15px;
+            }
+          
+           #nav-button_filter .btn, #nav-button_reload .btn {
+            border-radius: 50% !important; 
+            font-size: 12px !important;
+            width: 30px !important;
+            height: 30px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            margin: 0 10px !important;
+            }
+
+
+
           #plotHeaderContainer  {
             background: none;
             border: none;
@@ -275,9 +326,11 @@ ui <- shinydashboard::dashboardPage(
             overflow: auto;
             resize: both;
           }
-
-         
-
+          .form-group {
+            padding: 0 !important;
+            width: 80% !important;
+            margin-left: 10% !important;
+          }
          ")),
       tabName = "data",
       fluidRow(id = "firstRow",

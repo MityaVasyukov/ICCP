@@ -3,16 +3,16 @@ server <- function(input, output, session) {
     #####   SETTINGS   #####
 
         ######   Setting data   ######
-  if (!exists(".ICCP_env", envir = asNamespace("ICCP"))) {
-    stop("Error: .ICCP_env does not exist in ICCP namespace.")
-  }
-  local_env <- get(".ICCP_env", envir = asNamespace("ICCP"))
+            if (!exists(".ICCP_env", envir = asNamespace("ICCP"))) {
+                stop("Error: .ICCP_env does not exist in ICCP namespace.")
+            }
+            local_env <- get(".ICCP_env", envir = asNamespace("ICCP"))
 
-  # 2. Use that local_env to build your data frames
-  df  <- as.data.frame(local_env$data$dataset)
-  mdf <- as.data.frame(local_env$data$caves)
-  exp <- as.data.frame(local_env$data$loggers)
-  media_path <- system.file("www/images", package = "ICCP")
+            # 2. Use that local_env to build your data frames
+            df  <- as.data.frame(local_env$data$dataset)
+            mdf <- as.data.frame(local_env$data$caves)
+            exp <- as.data.frame(local_env$data$loggers)
+            media_path <- system.file("www/images", package = "ICCP")
         ######   Binding CHELSA data   ######
 
             chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
@@ -151,39 +151,93 @@ server <- function(input, output, session) {
             selected_caves <- reactiveVal(c("Skulls"))
 
     #####   DATA FILTERING & FITTING   #####
+        ######   Collecting inputs   ######
+            pending_filter_inputs <- reactive({
+                list(
+                    selection_mode = input$selection_mode,
+                    cave           = input$cave,
+                    zone           = input$zone,
+                    year           = input$year,
+                    season         = input$season,
+                    month          = input$month,
+                    day            = input$day,
+                    dateRange      = input$dateRange,
+                    time           = input$time
+                    )
+                })
+            final_filter_inputs <- reactiveVal(NULL)
+            
+            observe({
+                if (is.null(final_filter_inputs())) {
+                    final_filter_inputs( pending_filter_inputs() ) 
+                }
+                })
+            observeEvent(input$apply_filter, {
+                final_filter_inputs(pending_filter_inputs())
+                })
+
+            observe({
+                # Compare the entire list
+                if (identical(pending_filter_inputs(), final_filter_inputs())) {
+                # No changes => remove the pending-changes class
+                shinyjs::removeClass("apply_filter", "pending-changes")
+                shinyjs::runjs("$('#apply_filter i').removeClass('fa-beat');")
+                shinyjs::runjs("$('#apply_filter i').css('color', '');")
+                } else {
+                # Values differ => add the pending-changes class
+                shinyjs::addClass("apply_filter", "pending-changes")
+                shinyjs::runjs("$('#apply_filter i').addClass('fa-beat');")
+                shinyjs::runjs("$('#apply_filter i').css('color', 'white');")
+                }
+            })
+            
 
         ######   Filtering data   ######
 
             filtered_data <-  reactive({
+                shiny::showNotification("Filtering data", id = "filtering_data", type = "warning", duration = NULL)
+                filter_vals <- final_filter_inputs()
+                req(filter_vals)
+
+                caves <- filter_vals$cave
+                zones <- filter_vals$zone
+                years <- filter_vals$year
+                seasons <- filter_vals$season
+                months <- filter_vals$month
+                days <- filter_vals$day
+                dateRanges <- filter_vals$dateRange
+                times <- filter_vals$time
+
                 conditions <- list()
-                if (!is.null(input$cave)) { conditions <- c(conditions, sprintf("cave_name %%in%% input$cave")) }
-                if (!is.null(input$zone)) { conditions <- c(conditions, sprintf("zone %%in%% input$zone")) }
-                if (input$year != "all") { conditions <- c(conditions, sprintf("lubridate::year(datetime) == %d", as.numeric(input$year))) }
-                if (input$season != "any") {
+                if (!is.null(caves)) { conditions <- c(conditions, sprintf("cave_name %%in%% caves")) }
+                if (!is.null(zones)) { conditions <- c(conditions, sprintf("zone %%in%% zones")) }
+                if (years != "all") { conditions <- c(conditions, sprintf("lubridate::year(datetime) == %d", as.numeric(years))) }
+                if (seasons != "any") {
                     seasonMonthes <- list(
                         winter = c(1, 2, 12),
                         spring = 3:5,
                         summer = 6:8,
                         autumn = 9:11
                         )
-                    mnths <- seasonMonthes[[input$season]]
+                    mnths <- seasonMonthes[[seasons]]
                     conditions <- c(conditions, sprintf("lubridate::month(datetime) %%in%% c(%s)", paste(mnths, collapse = ",")))
                     }
-                if (input$month != "any") {
-                    month_num <- match(input$month, month.name)
+                if (months != "any") {
+                    month_num <- match(months, month.name)
                     conditions <- c(conditions, sprintf("month(datetime) == %d", month_num))
                     }
-                if (input$day[1] != 1 || input$day[2] != 31) {
-                    conditions <- c(conditions, sprintf("day(datetime) >= %s & day(datetime) <= %s", input$day[1], input$day[2] ))
+                if (days[1] != 1 || days[2] != 31) {
+                    conditions <- c(conditions, sprintf("day(datetime) >= %s & day(datetime) <= %s", days[1], days[2] ))
                     }
-                if (input$time[1] != 0 || input$time[2] != 24) {
-                    conditions <- c(conditions, sprintf("lubridate::hour(datetime) >= %s & lubridate::hour(datetime) <= %s", input$time[1], input$time[2] ))
+                if (times[1] != 0 || times[2] != 24) {
+                    conditions <- c(conditions, sprintf("lubridate::hour(datetime) >= %s & lubridate::hour(datetime) <= %s", times[1], times[2] ))
                     }
-                if (input$dateRange[1] > min(as.Date(df$datetime)) | input$dateRange[2] < max(as.Date(df$datetime))) {
-                    conditions <- c(conditions, sprintf("as.Date(datetime) >= '%s' & as.Date(datetime) <= '%s'", input$dateRange[1], input$dateRange[2]))
+                if (dateRanges[1] > min(as.Date(df$datetime)) | dateRanges[2] < max(as.Date(df$datetime))) {
+                    conditions <- c(conditions, sprintf("as.Date(datetime) >= '%s' & as.Date(datetime) <= '%s'", dateRanges[1], dateRanges[2]))
                     }
 
                 conditions_str <- paste(conditions, collapse = " & ")
+
                 if (length(conditions) == 0) {
                     fd <- df
                     } else {
@@ -214,6 +268,7 @@ server <- function(input, output, session) {
         ######   Transforming filtered data   ######
             transformed_data <- reactive({
                 data <- filtered_data()
+                req(data)
                 if (is.null(data)) {
                     return(NULL)
                     }
@@ -225,6 +280,7 @@ server <- function(input, output, session) {
                     data <- ICCP::fitGam(data)
                     }
 
+                shiny::removeNotification("filtering_data")
                 return(data)
             })
 
@@ -541,8 +597,8 @@ server <- function(input, output, session) {
 
         ######   Plot header   #######
             output$header <- renderUI({
-                colored_cave_name <- paste0("<span style='color:", cave_colors()[input$cave], "'>", input$cave, "</span>")
-                cave_elements <- lapply(input$cave, function(cave) {
+                colored_cave_name <- paste0("<span style='color:", cave_colors()[final_filter_inputs()$cave], "'>", final_filter_inputs()$cave, "</span>")
+                cave_elements <- lapply(final_filter_inputs()$cave, function(cave) {
                     color <- cave_colors()[[cave]]
                     cave_id <- gsub(" ", "_", cave)
                     tagList(
@@ -551,7 +607,7 @@ server <- function(input, output, session) {
                         )
                     })
 
-                cave <- if (length(input$cave) == 1) {
+                cave <- if (length(final_filter_inputs()$cave) == 1) {
                     tagList(cave_elements[[1]], " cave")
                     } else {
                         tagList(do.call(tagList, cave_elements), " caves")
@@ -575,8 +631,8 @@ server <- function(input, output, session) {
                 HTML(paste("selection:  ", cave, zone_text))
                 })
 
-            observeEvent(input$cave, {
-                lapply(input$cave, function(cave) {
+            observeEvent(final_filter_inputs()$cave, {
+                lapply(final_filter_inputs()$cave, function(cave) {
                     cave_id <- gsub(" ", "_", cave)
 
                     observeEvent(input[[paste0(cave_id, "_color")]], {
@@ -591,7 +647,8 @@ server <- function(input, output, session) {
         ######   Data plotting   ######
             output$dataplot <- plotly::renderPlotly({
                 data <- transformed_data()
-
+                shiny::showNotification("Building a plot", id = "building_plot", type = "warning", duration = NULL)
+                
                 if (is.null(data) || nrow(data) == 0) {
                     fig <- plotly::plot_ly() %>%
                     plotly::add_trace(
@@ -683,8 +740,10 @@ server <- function(input, output, session) {
                             yaxis = list(showgrid = TRUE, title = list(standoff = 20)),
                             plot_bgcolor = '#ffffff'
                             )
-
+                        
+                        shiny::removeNotification("building_plot")
                         return(fig)
+
                         }
                 })
 
@@ -760,7 +819,7 @@ server <- function(input, output, session) {
                 req(length(annotated_images_base64) > 0)
 
                 # Switch off the notification message
-                removeNotification("fetching_photos")
+                shiny::removeNotification("fetching_photos")
 
                 # Generate HTML for displaying images one by one
                 tags$div(
@@ -842,21 +901,21 @@ server <- function(input, output, session) {
                     data_to_save <- selected_data()
 
                     if (is.null(data_to_save)) {
-                        showNotification("No data selected for saving.", type = "error")
+                        shiny::showNotification("No data selected for saving.", type = "error")
                         return(NULL)
                         }
 
-                    showNotification("Saving data, please wait...", type = "message", duration = NULL)
+                    shiny::showNotification("Saving data, please wait...", type = "message", duration = NULL)
                     write.csv(data_to_save, file, row.names = FALSE)
-                    showNotification("Data saved successfully!", type = "message")
+                    shiny::showNotification("Data saved successfully!", type = "message")
                     }
                 )
 
     #####   OBSERVERS   #####
 
         ######   'Selected caves' dynamic updating   ######
-            observeEvent(input$cave, {
-                selected_caves(input$cave)
+            observeEvent(final_filter_inputs()$cave, {
+                selected_caves(final_filter_inputs()$cave)
                 }, ignoreInit = TRUE)
 
             observeEvent(input$add_cave, {
@@ -878,5 +937,8 @@ server <- function(input, output, session) {
             observeEvent(input$view_description2, {
                 file_path <- system.file("extdata", "caves_CHELSA.txt", package = "ICCP")
                 ICCP::showFileDescription(file_path)
+                })
+            observeEvent(input$reset_app, {
+                session$reload()  # force full reload of the entire Shiny app
                 })
     }
