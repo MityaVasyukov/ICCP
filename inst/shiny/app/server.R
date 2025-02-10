@@ -5,14 +5,14 @@ server <- function(input, output, session) {
         ######   Setting data   ######
             if (!exists(".ICCP_env", envir = asNamespace("ICCP"))) {
                 stop("Error: .ICCP_env does not exist in ICCP namespace.")
-            }
+                }
             local_env <- get(".ICCP_env", envir = asNamespace("ICCP"))
 
-            # 2. Use that local_env to build your data frames
             df  <- as.data.frame(local_env$data$dataset)
             mdf <- as.data.frame(local_env$data$caves)
             exp <- as.data.frame(local_env$data$loggers)
             media_path <- system.file("www/images", package = "ICCP")
+
         ######   Binding CHELSA data   ######
 
             chelsa_file_path <- system.file("extdata", "CHELSA.csv", package = "ICCP")
@@ -58,7 +58,8 @@ server <- function(input, output, session) {
                 "dark" = "#000000",
                 "light" = "#f1ee0f",
                 "twilight" = "#404040",
-                "control" = "#880000"
+                "control" = "#880000",
+                "CHELSA" = "#02bdb0"
                 )
 
             zone_colors <- reactiveVal(default_zone_colors)
@@ -84,16 +85,21 @@ server <- function(input, output, session) {
                     "border" = "none",
                     "color" = "#000000",
                     "font-style" = "italic"
+                    ),
+                "CHELSA" = list(
+                    "background-color" = default_zone_colors["CHELSA"],
+                    "border" = "none",
+                    "color" = "#000000",
+                    "font-style" = "italic"
                     )
                 )
 
         ######   Setting the list of choices and selecting defaults   ######
 
-            observe({
-                req(df, mdf, selected_caves())
+           observeEvent(TRUE, {
+                req(df, mdf)
                 freeze_inputs <- c("variable", "cave", "zone", "plot_mode", "units", "resolution", "year", "season", "month", "day", "dateRange", "time")
                 lapply(freeze_inputs, function(input_var) freezeReactiveValue(input, input_var))
-                updateSelectInput(session, "variable", choices = unique(df$var), selected = c("tm", "rh", "dp") ) # ex: selected = unique(df$var)
                 updateSelectizeInput(session, "cave", choices = mdf$name, selected = selected_caves())
                 updateSelectizeInput(session, "zone", choices = unique(exp$light_zone), selected = "dark", options = list(maxItems = 1))
                 updateSelectInput(session, "plot_mode", choices = c("line", "smooth"), selected = "line")
@@ -106,7 +112,8 @@ server <- function(input, output, session) {
                 updateSliderInput(session, "day", value = c(1, 31))
                 updateSliderInput(session, "time", value = c(0, 24))
                 updateSelectInput(session, "save_input", choices = c("", "filtered", "dataset", "metadata", "loggers"), selected = NULL)
-                })
+                updateSelectInput(session, "variable", choices = c("tm", "rh", "dp"), selected = c("tm", "rh", "dp") ) 
+                }, once = TRUE)
 
         ######   Dictionaries   ######
             abbreviations <- list(
@@ -127,113 +134,185 @@ server <- function(input, output, session) {
                 "OTT" = "Ottoman Period"
                 )
 
-        ###### Setting UI rules ######
+        ######   UIUX rules   ######
 
             observeEvent(input$season, {
                 if (input$season != "any") {
-                    updateSelectInput(session, "month", selected = "any")
+                    updateSelectInput(
+                        session = session,
+                        inputId = "month",
+                        selected = "any"
+                        )
                     }
                 })
+
             observeEvent(input$month, {
                 if (input$month != "any") {
-                    updateSelectInput(session, "season", selected = "any")
+                    updateSelectInput(
+                        session = session,
+                        inputId = "season",
+                        selected = "any"
+                        )
                     }
                 })
-            observe({
-                if (input$selection_mode == "zones") {
-                    updateSelectizeInput(session, "cave", choices = mdf$name, selected = selected_caves()[1], options = list(maxItems = 1))
-                    updateSelectizeInput(session, "zone", choices = unique(exp$light_zone), selected = "dark", options = list(maxItems = length(unique(exp$light_zone))))
-                    } else {
-                        updateSelectizeInput(session, "cave", choices = mdf$name, selected = selected_caves(), options = list(maxItems =  length(unique(mdf$name))))
-                        updateSelectizeInput(session, "zone", choices = unique(exp$light_zone), selected = "dark", options = list(maxItems = 1))
-                        }
-                })
-            selected_caves <- reactiveVal(c("Skulls"))
 
-    #####   DATA FILTERING & FITTING   #####
+            observeEvent(input$selection_mode, {
+                req(input$selection_mode)
+                if (input$selection_mode == "zones") {
+                    updateSelectizeInput(
+                        session = session,
+                        inputId = "cave",
+                        choices = mdf$name,
+                        selected = selected_caves()[1],
+                        options = list(maxItems = 1)
+                        )
+                    updateSelectizeInput(
+                        session = session,
+                        inputId = "zone",
+                        choices = unique(exp$light_zone),
+                        selected = input$zone,
+                        options = list(maxItems = length(unique(exp$light_zone)))
+                        )
+                } else {
+                    updateSelectizeInput(
+                        session = session,
+                        inputId = "cave",
+                        choices = mdf$name,
+                        selected = selected_caves(),
+                        options = list(maxItems =  length(unique(mdf$name)))
+                        )
+                    updateSelectizeInput(
+                        session = session,
+                        inputId = "zone",
+                        choices = unique(exp$light_zone),
+                        selected = input$zone[1],
+                        options = list(maxItems = 1)
+                        )
+                    }
+                })
+
+            observeEvent(input$cave, {
+                selected_caves(input$cave)
+                })
+
+            observeEvent(input$zone, {
+                data_choices <- unique(df$var)
+                chelsa_vars <- c("tas", "pr")
+                iccp_vars <- c("tm", "rh", "dp")
+                missing_vars <- setdiff(c(chelsa_vars, iccp_vars), data_choices)
+
+                if (length(missing_vars) > 0) {
+                    showNotification(
+                        paste(
+                            "Error: Missing required variables in data_choices:",
+                            paste(missing_vars, collapse = ", ")
+                            ),
+                        type = "error",
+                        duration = 10
+                        )
+                    return()
+                    }
+
+                if ("CHELSA" %in% input$zone) {
+                    allowed_choices <- data_choices
+                    default_selected <- chelsa_vars
+                } else {
+                    allowed_choices <- iccp_vars
+                    default_selected <- iccp_vars
+                }
+                
+                updateSelectInput(session, "variable", choices = allowed_choices, selected = default_selected)
+                })
+
+            selected_caves <- reactiveVal("Skulls")
+
+    #####   DATA FILTERING & ADJUSTING   #####
         ######   Collecting inputs   ######
+
             pending_filter_inputs <- reactive({
                 list(
                     selection_mode = input$selection_mode,
-                    cave           = input$cave,
-                    zone           = input$zone,
-                    year           = input$year,
-                    season         = input$season,
-                    month          = input$month,
-                    day            = input$day,
-                    dateRange      = input$dateRange,
-                    time           = input$time
+                    cave = input$cave,
+                    zone = input$zone,
+                    year = input$year,
+                    season = input$season,
+                    month = input$month,
+                    day = input$day,
+                    dateRange = input$dateRange,
+                    time = input$time,
+                    resolution = input$resolution,
+                    subplot_height = input$height,
+                    variable = input$variable,
+                    units  = input$units,
+                    flatten  = input$flatten,
+                    line_type = input$plot_mode
                     )
                 })
+                
             final_filter_inputs <- reactiveVal(NULL)
-            
+
             observe({
                 if (is.null(final_filter_inputs())) {
                     final_filter_inputs( pending_filter_inputs() ) 
-                }
+                    }
                 })
+                
             observeEvent(input$apply_filter, {
                 final_filter_inputs(pending_filter_inputs())
                 })
-
             observe({
-                # Compare the entire list
                 if (identical(pending_filter_inputs(), final_filter_inputs())) {
-                # No changes => remove the pending-changes class
-                shinyjs::removeClass("apply_filter", "pending-changes")
-                shinyjs::runjs("$('#apply_filter i').removeClass('fa-beat');")
-                shinyjs::runjs("$('#apply_filter i').css('color', '');")
-                } else {
-                # Values differ => add the pending-changes class
-                shinyjs::addClass("apply_filter", "pending-changes")
-                shinyjs::runjs("$('#apply_filter i').addClass('fa-beat');")
-                shinyjs::runjs("$('#apply_filter i').css('color', 'white');")
-                }
-            })
+                    shinyjs::removeClass("apply_filter", "pending-changes")
+                    shinyjs::runjs("$('#apply_filter i').removeClass('fa-beat');")
+                    shinyjs::runjs("$('#apply_filter i').css('color', '');")
+                    } else {
+                        shinyjs::addClass("apply_filter", "pending-changes")
+                        shinyjs::runjs("$('#apply_filter i').addClass('fa-beat');")
+                        shinyjs::runjs("$('#apply_filter i').css('color', 'white');")
+                        }
+                })
+           
+
             
 
-        ######   Filtering data   ######
+        ######   Preparing data   ######
 
-            filtered_data <-  reactive({
-                shiny::showNotification("Filtering data", id = "filtering_data", type = "warning", duration = NULL)
-                filter_vals <- final_filter_inputs()
-                req(filter_vals)
-
-                caves <- filter_vals$cave
-                zones <- filter_vals$zone
-                years <- filter_vals$year
-                seasons <- filter_vals$season
-                months <- filter_vals$month
-                days <- filter_vals$day
-                dateRanges <- filter_vals$dateRange
-                times <- filter_vals$time
-
+            filtered_data <- reactive({
+                req(final_filter_inputs())
+                showNotification(
+                    ui = "Preparing data",
+                    id = "filtering_data",
+                    type = "warning",
+                    duration = NULL
+                    )
+                filters <- final_filter_inputs()
                 conditions <- list()
-                if (!is.null(caves)) { conditions <- c(conditions, sprintf("cave_name %%in%% caves")) }
-                if (!is.null(zones)) { conditions <- c(conditions, sprintf("zone %%in%% zones")) }
-                if (years != "all") { conditions <- c(conditions, sprintf("lubridate::year(datetime) == %d", as.numeric(years))) }
-                if (seasons != "any") {
+
+                if (!is.null(filters$cave)) { conditions <- c(conditions, sprintf("cave_name %%in%% filters$cave")) }
+                if (!is.null(filters$zone)) { conditions <- c(conditions, sprintf("zone %%in%% filters$zone")) }
+                if (filters$year != "all") { conditions <- c(conditions, sprintf("lubridate::year(datetime) == %d", as.numeric(filters$year))) }
+                if (filters$season != "any") {
                     seasonMonthes <- list(
                         winter = c(1, 2, 12),
                         spring = 3:5,
                         summer = 6:8,
                         autumn = 9:11
                         )
-                    mnths <- seasonMonthes[[seasons]]
+                    mnths <- seasonMonthes[[filters$season]]
                     conditions <- c(conditions, sprintf("lubridate::month(datetime) %%in%% c(%s)", paste(mnths, collapse = ",")))
                     }
-                if (months != "any") {
-                    month_num <- match(months, month.name)
+                if (filters$month != "any") {
+                    month_num <- match(filters$month, month.name)
                     conditions <- c(conditions, sprintf("month(datetime) == %d", month_num))
                     }
-                if (days[1] != 1 || days[2] != 31) {
-                    conditions <- c(conditions, sprintf("day(datetime) >= %s & day(datetime) <= %s", days[1], days[2] ))
+                if (filters$day[1] != 1 || filters$day[2] != 31) {
+                    conditions <- c(conditions, sprintf("day(datetime) >= %s & day(datetime) <= %s", filters$day[1], filters$day[2] ))
                     }
-                if (times[1] != 0 || times[2] != 24) {
-                    conditions <- c(conditions, sprintf("lubridate::hour(datetime) >= %s & lubridate::hour(datetime) <= %s", times[1], times[2] ))
+                if (filters$time[1] != 0 || filters$time[2] != 24) {
+                    conditions <- c(conditions, sprintf("lubridate::hour(datetime) >= %s & lubridate::hour(datetime) <= %s", filters$time[1], filters$time[2] ))
                     }
-                if (dateRanges[1] > min(as.Date(df$datetime)) | dateRanges[2] < max(as.Date(df$datetime))) {
-                    conditions <- c(conditions, sprintf("as.Date(datetime) >= '%s' & as.Date(datetime) <= '%s'", dateRanges[1], dateRanges[2]))
+                if (filters$dateRange[1] > min(as.Date(df$datetime)) | filters$dateRange[2] < max(as.Date(df$datetime))) {
+                    conditions <- c(conditions, sprintf("as.Date(datetime) >= '%s' & as.Date(datetime) <= '%s'", filters$dateRange[1], filters$dateRange[2]))
                     }
 
                 conditions_str <- paste(conditions, collapse = " & ")
@@ -243,13 +322,13 @@ server <- function(input, output, session) {
                     } else {
                         fd <- df %>% dplyr::filter(eval(parse(text = conditions_str)))
                         }
-                if (input$resolution == "months") {
+                if (filters$resolution == "months") {
                     data <- fd %>%
                         dplyr::mutate(year_month = format(as.Date(datetime), "%Y-%m-01")) %>%
                         dplyr::group_by(cave_name, var, zone, year_month) %>%
                         dplyr::summarize(mean_val = mean(val, na.rm = TRUE), .groups = 'drop') %>%
                         dplyr::rename(datetime = year_month, val = mean_val)
-                    } else if (input$resolution == "days") {
+                    } else if (filters$resolution == "days") {
                         data <- fd %>%
                             dplyr::mutate(date = as.Date(datetime)) %>%
                             dplyr::group_by(cave_name, var, zone, date) %>%
@@ -260,30 +339,17 @@ server <- function(input, output, session) {
                     cat("filtered_data -- No data available\n")
                     return(NULL)
                     }
-
-                return(data)
-                })
-
-
-        ######   Transforming filtered data   ######
-            transformed_data <- reactive({
-                data <- filtered_data()
-                req(data)
-                if (is.null(data)) {
-                    return(NULL)
-                    }
-                if (input$units == "C°") {
+                if (filters$units == "C°") {
                     data <- data %>%
                     dplyr::mutate(val = ifelse(!var %in% c("rh", "pr") , val - 273.15, val))
                     }
-                if (input$flatten) {
+                if (filters$flatten) {
                     data <- ICCP::fitGam(data)
                     }
 
-                shiny::removeNotification("filtering_data")
+                removeNotification("filtering_data")
                 return(data)
-            })
-
+                })
 
     #####   RENDERING   #####
 
@@ -369,25 +435,25 @@ server <- function(input, output, session) {
                 selected_caves_list <- selected_caves()
 
                 # Add 'Photo' and 'Schema' buttons
-                data$photo_button <- sapply(data$name, function(name) {
-                    paste0(
-                        '<button class="photo-btn" data-cave="', name, '">Photo</button>',
-                        ' <button class="pdf-btn" data-cave="', name, '">Scheme</button>'
-                        )
-                    })
+                    data$photo_button <- sapply(data$name, function(name) {
+                        paste0(
+                            '<button class="photo-btn" data-cave="', name, '">Photo</button>',
+                            ' <button class="pdf-btn" data-cave="', name, '">Scheme</button>'
+                            )
+                        })
 
                 # Make 'occupation period' abbreviations clickable
-                data$occupation_periods <- sapply(data$occupation_periods, function(periods) {
-                    for (abbr in names(abbreviations)) {
-                        periods <- gsub(
-                        pattern = paste0("\\b", abbr, "\\b"),
-                        replacement = sprintf('<a href="#" class="abbr-link" data-abbr="%s">%s</a>', abbr, abbr),
-                        x = periods,
-                        fixed = FALSE
-                        )
-                        }
-                    periods
-                    })
+                    data$occupation_periods <- sapply(data$occupation_periods, function(periods) {
+                        for (abbr in names(abbreviations)) {
+                            periods <- gsub(
+                            pattern = paste0("\\b", abbr, "\\b"),
+                            replacement = sprintf('<a href="#" class="abbr-link" data-abbr="%s">%s</a>', abbr, abbr),
+                            x = periods,
+                            fixed = FALSE
+                            )
+                            }
+                        periods
+                        })
 
                 # Build data table
                     DT::datatable(
@@ -500,105 +566,107 @@ server <- function(input, output, session) {
         ######   Data scope plot output   #######
             output$dateRangePlot <- renderPlot({
                 # Set aesthethics parameters
-                zone_colors <- c(
-                    "dark" = "#1f1e1c",
-                    "light" = "#f0d54d",
-                    "twilight" = "darkgrey",
-                    "control" = "#d6301a",
-                    "none" = "white"
-                    )
-                alpha = 0.8
+                    zone_colors <- c(
+                        "dark" = "#1f1e1c",
+                        "light" = "#f0d54d",
+                        "twilight" = "darkgrey",
+                        "control" = "#d6301a",
+                        "none" = "white"
+                        )
+                    alpha = 0.8
                 # Load desired order for caves
-                cave_order <- rev(as.character(mdf$name))
+                    cave_order <- rev(as.character(mdf$name))
 
                 # Prepare the data for the plot
-                agdf <- df %>%
-                dplyr::filter(zone != "CHELSA") %>%
-                dplyr::group_by(cave_name, zone) %>%
-                dplyr::summarise(
-                    start_date = min(datetime),
-                    end_date = max(datetime),
-                    duration = as.numeric(difftime(end_date, start_date, units = "days")),
-                    .groups = 'drop'
-                ) %>%
-                dplyr::mutate(
-                    cave_name = factor(cave_name, levels = cave_order)  # Use reversed order
-                ) %>%
-                dplyr::arrange(cave_name, desc(duration))
+                    agdf <- df %>%
+                    dplyr::filter(zone != "CHELSA") %>%
+                    dplyr::group_by(cave_name, zone) %>%
+                    dplyr::summarise(
+                        start_date = min(datetime),
+                        end_date = max(datetime),
+                        duration = as.numeric(difftime(end_date, start_date, units = "days")),
+                        .groups = 'drop'
+                    ) %>%
+                    dplyr::mutate(
+                        cave_name = factor(cave_name, levels = cave_order)  # Use reversed order
+                    ) %>%
+                    dplyr::arrange(cave_name, desc(duration))
 
                 # Generate the plot
-                plot1 <-
-                    ggplot2::ggplot(agdf) +
-                    ggplot2::geom_rect(
-                        ggplot2::aes(
-                            xmin = start_date,
-                            xmax = end_date,
-                            ymin = as.numeric(cave_name) - 0.25,
-                            ymax = as.numeric(cave_name) + 0.25,
-                            fill = zone
-                        ),
-                        alpha = alpha
-                    ) +
-                    ggplot2::scale_x_datetime(
-                        name = "Date",
-                        date_labels = "%b '%y",
-                        date_breaks = "1 month"
-                    ) +
-                    ggplot2::scale_y_discrete(
-                        name = NULL,
-                        limits = cave_order,
-                        labels = cave_order
-                    ) +
-                    ggplot2::scale_fill_manual(
-                        values = zone_colors
-                    ) +
-                    ggplot2::labs(title = "Observation Time Spans Across Caves and Light Zones") +
-                    ggplot2::theme_minimal() +
-                    ggplot2::theme(
-                        axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 14),
-                        axis.text.y = ggplot2::element_text(size = 14),
-                        legend.text = ggplot2::element_text(size = 14),
-                        legend.title = ggplot2::element_text(size = 14),
-                        plot.title = ggplot2::element_text(size = 18, face = "bold", hjust = 0.5),
-                        panel.grid.major = ggplot2::element_blank(),
-                        panel.grid.minor = ggplot2::element_blank(),
-                        panel.background = ggplot2::element_blank()
-                        )
+                    plot1 <-
+                        ggplot2::ggplot(agdf) +
+                        ggplot2::geom_rect(
+                            ggplot2::aes(
+                                xmin = start_date,
+                                xmax = end_date,
+                                ymin = as.numeric(cave_name) - 0.25,
+                                ymax = as.numeric(cave_name) + 0.25,
+                                fill = zone
+                            ),
+                            alpha = alpha
+                        ) +
+                        ggplot2::scale_x_datetime(
+                            name = "Date",
+                            date_labels = "%b '%y",
+                            date_breaks = "1 month"
+                        ) +
+                        ggplot2::scale_y_discrete(
+                            name = NULL,
+                            limits = cave_order,
+                            labels = cave_order
+                        ) +
+                        ggplot2::scale_fill_manual(
+                            values = zone_colors
+                        ) +
+                        ggplot2::labs(title = "Observation Time Spans Across Caves and Light Zones") +
+                        ggplot2::theme_minimal() +
+                        ggplot2::theme(
+                            axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 14),
+                            axis.text.y = ggplot2::element_text(size = 14),
+                            legend.text = ggplot2::element_text(size = 14),
+                            legend.title = ggplot2::element_text(size = 14),
+                            plot.title = ggplot2::element_text(size = 18, face = "bold", hjust = 0.5),
+                            panel.grid.major = ggplot2::element_blank(),
+                            panel.grid.minor = ggplot2::element_blank(),
+                            panel.background = ggplot2::element_blank()
+                            )
 
                 # Prepare the data for the presence/absence table
-                presence_table <- agdf %>%
-                    tidyr::complete(cave_name, zone, fill = list(start_date = NA)) %>%
-                    dplyr::mutate(present = ifelse(is.na(start_date) | duration < 30, "none", zone))
+                    presence_table <- agdf %>%
+                        tidyr::complete(cave_name, zone, fill = list(start_date = NA)) %>%
+                        dplyr::mutate(present = ifelse(is.na(start_date) | duration < 30, "none", zone))
 
                 # Plot the table
-                plot2 <-
-                    ggplot2::ggplot(presence_table) +
-                    ggplot2::geom_tile(ggplot2::aes(x = zone, y = cave_name, fill = present), color = "white", alpha = alpha) +
-                    ggplot2::scale_fill_manual(
-                        values = zone_colors
-                    ) +
-                    ggplot2::scale_y_discrete(limits = cave_order, labels = NULL) +  # Match order with the plot
-                    ggplot2::scale_x_discrete(position = "top") +  # Place column names on top
-                    ggplot2::labs(x = NULL, y = NULL) +
-                    ggplot2::theme_minimal() +
-                    ggplot2::theme(
-                        axis.text.x = ggplot2::element_text(size = 12, face = "bold", angle = 90),
-                        axis.text.y = ggplot2::element_blank(),  # Hide y-axis labels
-                        panel.grid.major = ggplot2::element_blank(),
-                        panel.grid.minor = ggplot2::element_blank(),
-                        axis.ticks = ggplot2::element_blank(),
-                        legend.position = "none"
-                    )
+                    plot2 <-
+                        ggplot2::ggplot(presence_table) +
+                        ggplot2::geom_tile(ggplot2::aes(x = zone, y = cave_name, fill = present), color = "white", alpha = alpha) +
+                        ggplot2::scale_fill_manual(
+                            values = zone_colors
+                        ) +
+                        ggplot2::scale_y_discrete(limits = cave_order, labels = NULL) +  # Match order with the plot
+                        ggplot2::scale_x_discrete(position = "top") +  # Place column names on top
+                        ggplot2::labs(x = NULL, y = NULL) +
+                        ggplot2::theme_minimal() +
+                        ggplot2::theme(
+                            axis.text.x = ggplot2::element_text(size = 12, face = "bold", angle = 90),
+                            axis.text.y = ggplot2::element_blank(),  # Hide y-axis labels
+                            panel.grid.major = ggplot2::element_blank(),
+                            panel.grid.minor = ggplot2::element_blank(),
+                            axis.ticks = ggplot2::element_blank(),
+                            legend.position = "none"
+                        )
 
                 # Fuse the output
-                plot1 + plot2 + patchwork::plot_layout(widths = c(5, 1))
+                    plot1 + plot2 + patchwork::plot_layout(widths = c(5, 1))
                 })
 
 
         ######   Plot header   #######
             output$header <- renderUI({
-                colored_cave_name <- paste0("<span style='color:", cave_colors()[final_filter_inputs()$cave], "'>", final_filter_inputs()$cave, "</span>")
-                cave_elements <- lapply(final_filter_inputs()$cave, function(cave) {
+                filters <- final_filter_inputs()
+
+                colored_cave_name <- paste0("<span style='color:", cave_colors()[filters$cave], "'>", filters$cave, "</span>")
+                cave_elements <- lapply(filters$cave, function(cave) {
                     color <- cave_colors()[[cave]]
                     cave_id <- gsub(" ", "_", cave)
                     tagList(
@@ -607,23 +675,23 @@ server <- function(input, output, session) {
                         )
                     })
 
-                cave <- if (length(final_filter_inputs()$cave) == 1) {
+                cave <- if (length(filters$cave) == 1) {
                     tagList(cave_elements[[1]], " cave")
                     } else {
                         tagList(do.call(tagList, cave_elements), " caves")
                         }
 
-                if (length(input$zone) > 1) {
-                    zones <- sapply(input$zone, function(z) {
+                if (length(filters$zone) > 1) {
+                    zones <- sapply(filters$zone, function(z) {
                         zone_style <- zone_styles[[z]]
                         zone_style_str <- paste(names(zone_style), zone_style, sep = ": ", collapse = "; ")
                         paste0("<span style='", zone_style_str, "'>", toupper(z), "</span>")
                         })
-                    zone_text <- paste(paste(zones, collapse = ", "), " zones")
-                    } else if (length(input$zone) == 1) {
-                        zone_style <- zone_styles[[input$zone]]
+                    zone_text <- paste(zones, collapse = ", ")
+                    } else if (length(filters$zone) == 1) {
+                        zone_style <- zone_styles[[filters$zone]]
                         zone_style_str <- paste(names(zone_style), zone_style, sep = ": ", collapse = "; ")
-                        zone_text <- paste0("<span style='", zone_style_str, "'>", toupper(input$zone), " zone</span>")
+                        zone_text <- paste0("<span style='", zone_style_str, "'>", toupper(filters$zone), "</span>")
                         } else {
                             zone_text <- ""
                             }
@@ -646,9 +714,22 @@ server <- function(input, output, session) {
 
         ######   Data plotting   ######
             output$dataplot <- plotly::renderPlotly({
-                data <- transformed_data()
-                shiny::showNotification("Building a plot", id = "building_plot", type = "warning", duration = NULL)
-                
+                req(filtered_data(), final_filter_inputs())
+
+                data <- filtered_data()
+                filters <- final_filter_inputs()
+                units <- filters$units
+                mode <- filters$selection_mode
+                line_type <- filters$line_type
+                subplot_height <- filters$subplot_height
+                variable <- filters$variable
+                showNotification(
+                    ui = "Building a plot",
+                    id = "building_plot",
+                    type = "warning",
+                    duration = NULL
+                    )
+                req(data)
                 if (is.null(data) || nrow(data) == 0) {
                     fig <- plotly::plot_ly() %>%
                     plotly::add_trace(
@@ -671,16 +752,16 @@ server <- function(input, output, session) {
                         plot_builder <- function(df, var) {
                             varname <- switch(
                                 var,
-                                "tm" = paste("Temperature,", input$units),
+                                "tm" = paste("Temperature,", units),
                                 "rh" = "Relative humidity, %",
-                                "dp" = paste("Dew point,", input$units),
-                                "tas" = paste("Mean Air Temperature (CHELSA),", input$units),
+                                "dp" = paste("Dew point,", units),
+                                "tas" = paste("Mean Air Temperature (CHELSA),", units),
                                 "pr" = "Precipitation, kg/ m2 (CHELSA)",
                                 "unknown"
                                 )
 
-                            color_aesthetic <- if (input$selection_mode == "caves") "cave_name" else "zone"
-                            colors <- if (input$selection_mode == "caves") cave_colors() else zone_colors()
+                            color_aesthetic <- if (mode == "caves") "cave_name" else "zone"
+                            colors <- if (mode == "caves") cave_colors() else zone_colors()
 
                             plot <- ggplot2::ggplot(
                                 df %>% dplyr::filter(var == !!var),
@@ -695,24 +776,24 @@ server <- function(input, output, session) {
                                 panel.grid.minor = ggplot2::element_blank(),
                                 axis.line.y = ggplot2::element_line(linewidth = 1.5)
                                 )  +
-                            if (var == "tm") { ggplot2::ylab(paste("Temperature,", input$units)) }
-                            else if (var == "dp") { ggplot2::ylab(paste("Dew point,", input$units)) }
+                            if (var == "tm") { ggplot2::ylab(paste("Temperature,", units)) }
+                            else if (var == "dp") { ggplot2::ylab(paste("Dew point,", units)) }
                             else if (var == "rh") { ggplot2::ylab("Relative humidity, %") }
-                            else if (var == "tas") { ggplot2::ylab(paste("Mean Air Temperature (CHELSA),", input$units)) }
+                            else if (var == "tas") { ggplot2::ylab(paste("Mean Air Temperature (CHELSA),", units)) }
                             else if (var == "pr") { ggplot2::ylab("Precipitation, kg/ m2 (CHELSA)") }
                             else { ggplot2::ylab("Variable") }
 
-                            if ("line" %in% input$plot_mode) {
+                            if ("line" %in% line_type) {
                                 plot <- plot + ggplot2::geom_line()
                                 }
-                            if ("smooth" %in% input$plot_mode) {
+                            if ("smooth" %in% line_type) {
                                 plot <- plot + ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))
                                 }
 
-                            plotly::ggplotly(plot, dynamicTicks = TRUE, height = input$height)
+                            plotly::ggplotly(plot, dynamicTicks = TRUE, height = subplot_height)
                             }
 
-                        plots <- lapply(input$variable, function(var) plot_builder(data, var))
+                        plots <- lapply(variable, function(var) plot_builder(data, var))
                         fig <- plotly::subplot(
                             plots,
                             nrows = length(plots),
@@ -741,7 +822,7 @@ server <- function(input, output, session) {
                             plot_bgcolor = '#ffffff'
                             )
                         
-                        shiny::removeNotification("building_plot")
+                        removeNotification("building_plot")
                         return(fig)
 
                         }
@@ -749,7 +830,8 @@ server <- function(input, output, session) {
 
         ######   Summary data   ######
             output$sum <- renderPrint({
-                data <- transformed_data()
+                data <- filtered_data()
+                
                 if (is.null(data)) { return(NULL) }
                 summary <- data %>%
                 dplyr::group_by(cave_name, var, zone) %>%
@@ -767,100 +849,105 @@ server <- function(input, output, session) {
 
         ######   Photos   ######
             # Preload photo paths
-            photo_files <- reactive({
-                list.files(
-                    path = media_path,
-                    full.names = TRUE,
-                    pattern = "\\.(jpg|jpeg|png|gif)$",
-                    ignore.case = TRUE
-                    )
-                })
+                photo_files <- reactive({
+                    list.files(
+                        path = media_path,
+                        full.names = TRUE,
+                        pattern = "\\.(jpg|jpeg|png|gif)$",
+                        ignore.case = TRUE
+                        )
+                    })
 
             # Filter photos based on the selection
-            filtered_photos <- reactive({
-                req(input$view_photos$cave)
-                cave_name <- gsub(" ", "_", input$view_photos$cave)
-                files <- grep(cave_name, photo_files(), value = TRUE)
+                filtered_photos <- reactive({
+                    req(input$view_photos$cave)
+                    cave_name <- gsub(" ", "_", input$view_photos$cave)
+                    files <- grep(cave_name, photo_files(), value = TRUE)
 
-                # Fetch metadata if files exist
-                if (length(files) > 0) {
-                    meta_data <- ICCP::getMeta(files)
-                    if (!is.null(meta_data) && nrow(meta_data) > 0) { return(meta_data) }
-                    }
+                    # Fetch metadata if files exist
+                    if (length(files) > 0) {
+                        meta_data <- ICCP::getMeta(files)
+                        if (!is.null(meta_data) && nrow(meta_data) > 0) { return(meta_data) }
+                        }
 
-                return(data.frame(SourceFile = character(0), Artist = character(0)))
-                })
+                    return(data.frame(SourceFile = character(0), Artist = character(0)))
+                    })
 
             # Generate the photo output
-            output$carousel_photos <- renderUI({
-                # Run notification message
-                shiny::showNotification("FETCHING PHOTOS", id = "fetching_photos", type = "warning", duration = NULL)
-
-                photo_data <- filtered_photos()
-                req(nrow(photo_data) > 0)
-
-                # Annotate photos in memory
-                annotated_images <- lapply(seq_len(nrow(photo_data)), function(i) {
-                    ICCP::annotatePhoto(
-                        photo_path = photo_data$SourceFile[i],
-                        artist_text = photo_data$Artist[i],
-                        date_created = photo_data$DateCreated[i],
-                        caption_abstract = photo_data$`Caption-Abstract`[i]
-                        )
-                    })
-
-                # Convert annotated images to Base64 for inline display
-                annotated_images_base64 <- lapply(annotated_images, function(image) {
-                    image %>%
-                        magick::image_write(format = "png") %>%
-                            base64enc::dataURI(mime = "image/png")
-                    })
-
-                req(length(annotated_images_base64) > 0)
-
-                # Switch off the notification message
-                shiny::removeNotification("fetching_photos")
-
-                # Generate HTML for displaying images one by one
-                tags$div(
-                    lapply(annotated_images_base64, function(img_src) {
-                        tags$div(
-                            style = "text-align: center; background-color: black;",
-                            tags$img(
-                                src = img_src,
-                                style = "
-                                    max-height: 90vh;
-                                    width: auto;
-                                    max-width: 90%;
-                                    margin-bottom: 50px;
-                                    border-radius: 5px;
-                                    outline: 1px solid rgba(158, 158, 158, 0.8);
-                                    box-shadow: 0px 0px 40px rgba(158, 158, 158, 0.3);
-                                    "
-                                )
+                output$carousel_photos <- renderUI({
+                    # Run notification message
+                        showNotification(
+                            ui = "Fetching fotos",
+                            id = "fetching_photos",
+                            type = "warning",
+                            duration = NULL
                             )
-                        })
-                    )
-                })
 
-            observeEvent(input$view_photos, {
-                removeModal()
-                showModal(
-                    modalDialog(
-                        title = paste(input$view_photos$cave, "cave"),
-                        size = "l",
-                        easyClose = TRUE,
-                        footer = NULL,
-                        fade = TRUE,
-                        shinycssloaders::withSpinner(
-                            uiOutput("carousel_photos"),
-                            type = 4,
-                            proxy.height = "50vh",
-                            ),
-                        style = "background-color: black; box-shadow: 0px 30px 30px rgba(0, 0, 0, 0.6); "
+                        photo_data <- filtered_photos()
+                        req(nrow(photo_data) > 0)
+
+                    # Annotate photos in memory
+                        annotated_images <- lapply(seq_len(nrow(photo_data)), function(i) {
+                            ICCP::annotatePhoto(
+                                photo_path = photo_data$SourceFile[i],
+                                artist_text = photo_data$Artist[i],
+                                date_created = photo_data$DateCreated[i],
+                                caption_abstract = photo_data$`Caption-Abstract`[i]
+                                )
+                            })
+
+                    # Convert annotated images to Base64 for inline display
+                        annotated_images_base64 <- lapply(annotated_images, function(image) {
+                            image %>%
+                                magick::image_write(format = "png") %>%
+                                    base64enc::dataURI(mime = "image/png")
+                            })
+
+                    req(length(annotated_images_base64) > 0)
+
+                    # Switch off the notification message
+                    removeNotification("fetching_photos")
+
+                    # Generate HTML for displaying images one by one
+                        tags$div(
+                            lapply(annotated_images_base64, function(img_src) {
+                                tags$div(
+                                    style = "text-align: center; background-color: black;",
+                                    tags$img(
+                                        src = img_src,
+                                        style = "
+                                            max-height: 90vh;
+                                            width: auto;
+                                            max-width: 90%;
+                                            margin-bottom: 50px;
+                                            border-radius: 5px;
+                                            outline: 1px solid rgba(158, 158, 158, 0.8);
+                                            box-shadow: 0px 0px 40px rgba(158, 158, 158, 0.3);
+                                            "
+                                        )
+                                    )
+                                })
+                            )
+                    })
+
+                observeEvent(input$view_photos, {
+                    removeModal()
+                    showModal(
+                        modalDialog(
+                            title = paste(input$view_photos$cave, "cave"),
+                            size = "l",
+                            easyClose = TRUE,
+                            footer = NULL,
+                            fade = TRUE,
+                            shinycssloaders::withSpinner(
+                                uiOutput("carousel_photos"),
+                                type = 4,
+                                proxy.height = "50vh",
+                                ),
+                            style = "background-color: black; box-shadow: 0px 30px 30px rgba(0, 0, 0, 0.6); "
+                            )
                         )
-                    )
-                })
+                    })
 
         ######   Open PDF   ######
             observeEvent(input$view_pdf, {
@@ -901,32 +988,45 @@ server <- function(input, output, session) {
                     data_to_save <- selected_data()
 
                     if (is.null(data_to_save)) {
-                        shiny::showNotification("No data selected for saving.", type = "error")
+                        showNotification(
+                            ui = "No data selected for saving!",
+                            type = "error",
+                            duration = NULL
+                            )
                         return(NULL)
                         }
 
-                    shiny::showNotification("Saving data, please wait...", type = "message", duration = NULL)
+                    showNotification(
+                        ui = "Saving data...",
+                        id = "saving_data",
+                        type = "message",
+                        duration = NULL
+                        )
+                    
                     write.csv(data_to_save, file, row.names = FALSE)
-                    shiny::showNotification("Data saved successfully!", type = "message")
+                    
+                    removeNotification("saving_data")
+                    showNotification(
+                        ui = "Data saved successfully!",
+                        type = "message",
+                        duration = 3
+                        )
                     }
                 )
 
     #####   OBSERVERS   #####
 
         ######   'Selected caves' dynamic updating   ######
-            observeEvent(final_filter_inputs()$cave, {
-                selected_caves(final_filter_inputs()$cave)
-                }, ignoreInit = TRUE)
+            # DOESNT WORK AS EXPECTED, - REMOVE OR ADJUST
+            #observeEvent(input$add_cave, {
+            #    current_caves <- trimws(selected_caves())
+            #    new_cave <- trimws(input$add_cave)
 
-            observeEvent(input$add_cave, {
-                current_caves <- trimws(selected_caves())
-                new_cave <- trimws(input$add_cave)
-
-                if (!new_cave %in% current_caves) {
-                    selected_caves(c(current_caves, new_cave))
-                    updateSelectInput(session, "cave",  selected = selected_caves())
-                    }
-                })
+            #    if (!new_cave %in% current_caves) { 
+            #        selected_caves(c(current_caves, new_cave))
+            #        updateSelectInput(session, "cave",  selected = selected_caves())
+            #        }
+            #    })
 
         ######   Button observers   ######
             observeEvent(input$view_description1, {
@@ -941,4 +1041,14 @@ server <- function(input, output, session) {
             observeEvent(input$reset_app, {
                 session$reload()  # force full reload of the entire Shiny app
                 })
+
+            observeEvent(input$save_input, {
+                if (!is.null(input$save_input) && input$save_input != "") {
+                shinyjs::enable("save_btn")
+                shinyjs::runjs("$('#save_btn i').css('color', 'green');")
+                } else {
+                shinyjs::runjs("$('#save_btn i').css('color', '');")
+                shinyjs::disable("save_btn")
+                }
+            })
     }

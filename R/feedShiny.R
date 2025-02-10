@@ -41,7 +41,7 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     }
 
     ## Retrieving the data from netcdf file ##
-    cat(sprintf("%s \t OK \t Proceeding to grab the data from '%s' \n", ICCP::formatSystime(), file_name))
+    cat(sprintf("%s \t OK \t Grabbing data from '%s' \n", ICCP::formatSystime(), file_name))
 
 
 
