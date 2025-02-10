@@ -282,7 +282,7 @@ ui <- shinydashboard::dashboardPage(
                 }
             .main-sidebar {
                 position: fixed;
-                max-height: 100vh;
+                height: 100vh;
                 overflow: auto;
                 }
             .navbar-custom-menu > .navbar-nav > li {
@@ -356,7 +356,7 @@ ui <- shinydashboard::dashboardPage(
                 }
             .fluidRow {
                 display: flex;
-                max-height: 90vh;
+                height: auto !important;
                 }
             .leaflet {
                 height: 100% !important;
@@ -371,10 +371,20 @@ ui <- shinydashboard::dashboardPage(
                 margin-top: 20px;
                 }
             #thirdRow {
-                min-height: 100% !important;
+                display: flex;
+                width: 100%;
+                flex-grow: 1;
+                flex-direction: column;
+                height: auto !important;
+                }
+            #fourthRow {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
                 }
             #plot {
-                height: 1200px;
+                width: 100%;
+                height: auto !important;
                 }
             #rangePlot {
                 height: 600px
@@ -439,11 +449,13 @@ ui <- shinydashboard::dashboardPage(
                 shinydashboard::box(
                     id = "plot",
                     width = 12,
+                    style = "height: auto;",
                     shinycssloaders::withSpinner(
-                        plotly::plotlyOutput("dataplot"),
+                        plotly::plotlyOutput("dataplot", height = "auto"),
                         type = 7,
                         color.background = "#FFFFFF",
-                        hide.ui = FALSE)
+                        hide.ui = FALSE
+                        )
                     )
                 )
             ),
@@ -454,7 +466,7 @@ ui <- shinydashboard::dashboardPage(
                 shinydashboard::box(
                     id = "summary",
                     width = 12,
-                    height = "100%",
+                    style = "height: auto;",
                     verbatimTextOutput("sum")
                     )
                 )
