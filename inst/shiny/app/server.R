@@ -567,7 +567,16 @@ server <- function(input, output, session) {
 
         ######   Data scope plot output   #######
             output$dateRangePlot <- renderPlot({
-                # Set aesthethics parameters
+                # counts of loggers by caves
+                    zone_counts <- exp %>%
+                        dplyr::count(cave_name, light_zone) %>%
+                        dplyr::rename(
+                            zone  = light_zone,
+                            count = n
+                        )
+
+                # Sets
+                    zone_levels <- c("light", "twilight", "dark")
                     zone_colors <- c(
                         "dark" = "#1f1e1c",
                         "light" = "#f0d54d",
@@ -575,37 +584,44 @@ server <- function(input, output, session) {
                         "control" = "#d6301a",
                         "none" = "white"
                         )
-                    alpha = 0.8
-                # Load desired order for caves
+                    alpha <- 1
+
+                    total_bar_height <- 0.9
+                    slice_height <- total_bar_height / length(zone_levels)
                     cave_order <- rev(as.character(mdf$name))
 
                 # Prepare the data for the plot
                     agdf <- df %>%
-                    dplyr::filter(zone != "CHELSA") %>%
-                    dplyr::group_by(cave_name, zone) %>%
-                    dplyr::summarise(
-                        start_date = min(datetime),
-                        end_date = max(datetime),
-                        duration = as.numeric(difftime(end_date, start_date, units = "days")),
-                        .groups = 'drop'
-                    ) %>%
-                    dplyr::mutate(
-                        cave_name = factor(cave_name, levels = cave_order)  # Use reversed order
-                    ) %>%
-                    dplyr::arrange(cave_name, desc(duration))
+                        dplyr::filter(zone != "CHELSA") %>%
+                        dplyr::group_by(cave_name, zone) %>%
+                        dplyr::summarise(
+                            start_date = min(datetime),
+                            end_date = max(datetime),
+                            duration = as.numeric(difftime(end_date, start_date, units = "days")),
+                            .groups = 'drop'
+                        ) %>%
+                        dplyr::mutate(
+                            cave_name = factor(cave_name, levels = cave_order),  # Use reversed order
+                            zone = factor(zone, levels = zone_levels),
+                            zone_idx = as.numeric(zone),
+                            ymin = as.numeric(cave_name) - total_bar_height/2 + (zone_idx - 1)*slice_height,
+                            ymax = ymin + slice_height
+                        ) %>%
+                        dplyr::arrange(cave_name, desc(duration))
 
-                # Generate the plot
-                    plot1 <-
+                # left panel
+                    p1 <-
                         ggplot2::ggplot(agdf) +
                         ggplot2::geom_rect(
                             ggplot2::aes(
-                                xmin = start_date,
-                                xmax = end_date,
-                                ymin = as.numeric(cave_name) - 0.25,
-                                ymax = as.numeric(cave_name) + 0.25,
-                                fill = zone
+                                xmin   = start_date,
+                                xmax   = end_date,
+                                ymin   = ymin,
+                                ymax   = ymax,
+                                fill   = zone
                             ),
-                            alpha = alpha
+                            alpha = alpha,
+                            colour = NA
                         ) +
                         ggplot2::scale_x_datetime(
                             name = "Date",
@@ -617,50 +633,70 @@ server <- function(input, output, session) {
                             limits = cave_order,
                             labels = cave_order
                         ) +
-                        ggplot2::scale_fill_manual(
-                            values = zone_colors
+                        ggplot2::labs(
+                            title = "Time Spans of Logger Records",
+                            subtitle = "Maximum span for each cave and light zone; counts on the right show how many loggers were deployed in each zone type"
                         ) +
-                        ggplot2::labs(title = "Observation Time Spans Across Caves and Light Zones") +
                         ggplot2::theme_minimal() +
                         ggplot2::theme(
                             axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 14),
                             axis.text.y = ggplot2::element_text(size = 14),
                             legend.text = ggplot2::element_text(size = 14),
                             legend.title = ggplot2::element_text(size = 14),
-                            plot.title = ggplot2::element_text(size = 18, face = "bold", hjust = 0.5),
+                            plot.title = ggplot2::element_text(size = 18, face = "bold", hjust = 0),
+                            plot.subtitle = ggplot2::element_text(size = 14, hjust = 0, margin = ggplot2::margin(b = 10)),
                             panel.grid.major = ggplot2::element_blank(),
                             panel.grid.minor = ggplot2::element_blank(),
-                            panel.background = ggplot2::element_blank()
-                            )
+                            panel.background = ggplot2::element_blank(),
+                            panel.grid = ggplot2::element_blank()
+                        )
 
                 # Prepare the data for the presence/absence table
                     presence_table <- agdf %>%
-                        tidyr::complete(cave_name, zone, fill = list(start_date = NA)) %>%
-                        dplyr::mutate(present = ifelse(is.na(start_date) | duration < 30, "none", zone))
+                        tidyr::complete(
+                            cave_name,
+                            zone = zone_levels,
+                            fill = list(start_date = NA, duration = NA)
+                        ) %>%
+                        dplyr::mutate(
+                        present = factor(
+                            ifelse(is.na(start_date) | duration < 30, NA, as.character(zone)),
+                            levels = zone_levels
+                            )
+                        ) %>%
+                        dplyr::left_join(zone_counts, by = c("cave_name","zone")) %>%
+                        tidyr::replace_na(list(count = 0))
 
-                # Plot the table
-                    plot2 <-
+                # right panel
+                    p2 <- 
                         ggplot2::ggplot(presence_table) +
-                        ggplot2::geom_tile(ggplot2::aes(x = zone, y = cave_name, fill = present), color = "white", alpha = alpha) +
-                        ggplot2::scale_fill_manual(
-                            values = zone_colors
+                        ggplot2::geom_tile(
+                            ggplot2::aes(x = zone, y = cave_name, fill = present),
+                            colour = "white",
+                            alpha = alpha
                         ) +
-                        ggplot2::scale_y_discrete(limits = cave_order, labels = NULL) +  # Match order with the plot
-                        ggplot2::scale_x_discrete(position = "top") +  # Place column names on top
+                        ggplot2::geom_text(
+                            ggplot2::aes(x = zone, y = cave_name, label = count),
+                            colour = "white",
+                            size = 5,
+                            fontface = "bold"
+                        ) +
+                        ggplot2::scale_x_discrete(position = "top", limits  = zone_levels) +
+                        ggplot2::scale_y_discrete(limits = cave_order, labels = NULL) +
                         ggplot2::labs(x = NULL, y = NULL) +
                         ggplot2::theme_minimal() +
                         ggplot2::theme(
                             axis.text.x = ggplot2::element_text(size = 12, face = "bold", angle = 90),
-                            axis.text.y = ggplot2::element_blank(),  # Hide y-axis labels
-                            panel.grid.major = ggplot2::element_blank(),
-                            panel.grid.minor = ggplot2::element_blank(),
+                            axis.text.y = ggplot2::element_blank(),
+                            panel.grid = ggplot2::element_blank(),
                             axis.ticks = ggplot2::element_blank(),
                             legend.position = "none"
                         )
 
-                # Fuse the output
-                    plot1 + plot2 + patchwork::plot_layout(widths = c(5, 1))
-                })
+                # Fused output
+                    (p1 + p2 + patchwork::plot_layout(widths = c(5, 1))) &
+                    scale_fill_manual(values = zone_colors, na.value = zone_colors["none"])
+            })
 
 
         ######   Plot header   #######
