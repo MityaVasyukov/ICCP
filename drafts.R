@@ -89,3 +89,54 @@ getChelsaPointData <- function(setup, df, temperature, precipitation, startDate,
 }
 
 # output <- getChelsaPointData(FALSE, mdf, TRUE, TRUE, as.Date("2019-1-10"), as.Date("2019-1-19"))
+
+
+# install.packages(c("exifr", "stringr"))
+library(exifr)
+library(stringr)
+
+# your metadata‑pulling function
+getMeta <- function(path) {
+  tags <- c("Artist", "Caption-Abstract", "DateCreated")
+  md   <- read_exif(path, tags = tags)
+  return(md)
+}
+
+# 1. point to your folder
+folder <- "p:/2025-ICCP/ICCP/inst/www/images"
+
+# 2. find all .jpg/.jpeg files
+jpgs <- list.files(folder, 
+                   pattern = "\\.jpe?g$", 
+                   full.names = TRUE, 
+                   ignore.case = TRUE)
+
+df <- do.call(rbind, lapply(jpgs, function(fp) {
+  fn <- fp
+  id <- as.integer(str_extract(fn, "^\\d+"))
+  md <- getMeta(fp)
+  
+  # ensure it's a one‐row data.frame
+  data.frame(
+    id        = id,
+    filename  = fn,
+    Artist    = md$Artist,
+    Caption   = md$`Caption-Abstract`,
+    Date      = md$DateCreated,
+    stringsAsFactors = FALSE
+  )
+}))
+
+# 4. reset rownames
+rownames(df) <- NULL
+
+
+# assuming your data.frame is called `df`
+write.table(
+  df,
+  file      = "p:/2025-ICCP/ICCP/inst/www/images/captions.txt",
+  sep       = "\t",          # tab delimiter
+  row.names = FALSE,         # don’t write row numbers
+  quote     = FALSE,         # don’t wrap strings in quotes
+  na        = ""             # empty string for missing values
+)

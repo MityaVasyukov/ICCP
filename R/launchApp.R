@@ -17,7 +17,6 @@
 #' @importFrom magrittr %>%
 #' @importFrom usethis use_pipe
 #' @import magick
-#' @import exifr
 #' @import patchwork
 #'
 #' @examples

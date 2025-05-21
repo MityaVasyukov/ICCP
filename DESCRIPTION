@@ -15,9 +15,9 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports:
-    RNetCDF, magick, tidyr, dplyr, utils, shiny, shinydashboard, shinyjs, lubridate, leaflet, DT, ggplot2, plotly, shinycssloaders, mgcv, purrr, stats, magrittr, usethis, exifr, patchwork
+    RNetCDF, magick, tidyr, dplyr, utils, shiny, shinydashboard, shinyjs, lubridate, leaflet, DT, ggplot2, plotly, shinycssloaders, mgcv, purrr, stats, magrittr, usethis, patchwork
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

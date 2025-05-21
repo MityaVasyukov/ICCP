@@ -12,6 +12,8 @@ server <- function(input, output, session) {
             mdf <- as.data.frame(local_env$data$caves)
             exp <- as.data.frame(local_env$data$loggers)
             media_path <- system.file("www/images", package = "ICCP")
+            captions_path <- system.file("www", "images", "captions.txt", package = "ICCP")
+            captions <- read.delim(captions_path, header = T, stringsAsFactors = F)
 
         ######   Binding CHELSA data   ######
 
@@ -864,13 +866,36 @@ server <- function(input, output, session) {
                     cave_name <- gsub(" ", "_", input$view_photos$cave)
                     files <- grep(cave_name, photo_files(), value = TRUE)
 
-                    # Fetch metadata if files exist
-                    if (length(files) > 0) {
-                        meta_data <- ICCP::getMeta(files)
-                        if (!is.null(meta_data) && nrow(meta_data) > 0) { return(meta_data) }
-                        }
+                    # Fetch metadata if file exist
+                        out <- data.frame(
+                            SourceFile = character(0),
+                            Artist = character(0),
+                            Caption = character(0),
+                            DateCreated = integer(0),
+                            stringsAsFactors = F
+                        )
+                        
+                        if (length(files) == 0) { return(out) }
 
-                    return(data.frame(SourceFile = character(0), Artist = character(0)))
+                        sh_files <- basename(files)
+                        meta <- captions[captions$filename %in% sh_files, , drop = F]
+                                                
+                        if (nrow(meta) == 0)  { return(out) }
+
+                        ix_full <- match(meta$filename, sh_files)
+
+                        full_paths <- files[ix_full]
+                        
+                        out <- data.frame(
+                            SourceFile = full_paths,
+                            Artist = meta$Artist,
+                            Caption = meta$Caption,
+                            DateCreated = meta$Date,
+                            stringsAsFactors = F
+                        )
+                        
+                        return(out)
+
                     })
 
             # Generate the photo output
@@ -892,7 +917,7 @@ server <- function(input, output, session) {
                                 photo_path = photo_data$SourceFile[i],
                                 artist_text = photo_data$Artist[i],
                                 date_created = photo_data$DateCreated[i],
-                                caption_abstract = photo_data$`Caption-Abstract`[i]
+                                caption_abstract = photo_data$Caption[i]
                                 )
                             })
 
