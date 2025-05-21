@@ -695,7 +695,7 @@ server <- function(input, output, session) {
 
                 # Fused output
                     (p1 + p2 + patchwork::plot_layout(widths = c(5, 1))) &
-                    scale_fill_manual(values = zone_colors, na.value = zone_colors["none"])
+                    ggplot2::scale_fill_manual(values = zone_colors, na.value = zone_colors["none"])
             })
 
 
