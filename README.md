@@ -40,5 +40,5 @@ Run the following commands:
 
 ``` r
 library(ICCP)
-launchApp()
+iccp()
 ```

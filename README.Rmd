@@ -42,5 +42,5 @@ We also have a video of installation process and app observing:
 Run the following commands:
 ``` r
 library(ICCP)
-launchApp()
+iccp()
 ```

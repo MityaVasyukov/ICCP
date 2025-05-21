@@ -21,11 +21,11 @@
 #'
 #' @examples
 #' \dontrun{
-#' launchApp()
+#' iccp()
 #' }
 #'
 #' @export
-launchApp <- function() {
+iccp <- function() {
   if (!exists("data", envir = .ICCP_env)) {
     message("Fetching data using feedShiny()...")
     .ICCP_env$data <- feedShiny()
