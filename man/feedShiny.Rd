@@ -4,7 +4,7 @@
 \alias{feedShiny}
 \title{Function retreiving the data from a netcdf file}
 \usage{
-feedShiny(file_name = "israel_caves-2024.nc")
+feedShiny(file_name = "israel_caves-2025.nc")
 }
 \arguments{
 \item{file_name}{netcdf file path/name}
@@ -16,7 +16,7 @@ returns a list of data frames
 Function retreiving the data from a netcdf file
 }
 \examples{
-filename <- "israel_caves-2024.nc"
+filename <- "israel_caves-2025.nc"
 feedShiny(filename)
 
 }

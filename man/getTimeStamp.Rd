@@ -20,6 +20,6 @@ datetime_vector Date vector
 Helper function to return a date vector from the time variable (interval since some date) of a NetCDF file
 }
 \examples{
-getTimeStamp("israel_caves-2024.nc", "time", 1:10)
+getTimeStamp("israel_caves-2025.nc", "time", 1:10)
 
 }

@@ -1091,7 +1091,7 @@ server <- function(input, output, session) {
 
         ######   Button observers   ######
             observeEvent(input$view_description1, {
-                file_path <- system.file("extdata", "israel_caves-2024.txt", package = "ICCP")
+                file_path <- system.file("extdata", "israel_caves-2025.txt", package = "ICCP")
                 ICCP::showFileDescription(file_path)
                 })
 

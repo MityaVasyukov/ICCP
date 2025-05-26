@@ -8,7 +8,7 @@
 #' @export
 #' @import RNetCDF
 #' @examples
-#' getTimeStamp("israel_caves-2024.nc", "time", 1:10)
+#' getTimeStamp("israel_caves-2025.nc", "time", 1:10)
 #'
 getTimeStamp <- function(nc_file, var, interval) {
   if (is.character(nc_file)) {

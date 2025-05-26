@@ -10,10 +10,10 @@
 #' @export
 #'
 #' @examples
-#' filename <- "israel_caves-2024.nc"
+#' filename <- "israel_caves-2025.nc"
 #' feedShiny(filename)
 #'
-feedShiny <- function(file_name = "israel_caves-2024.nc") {
+feedShiny <- function(file_name = "israel_caves-2025.nc") {
 
     # SETTINGS #
 
@@ -21,7 +21,7 @@ feedShiny <- function(file_name = "israel_caves-2024.nc") {
     start_time <- Sys.time()
 
     ## Check if user specified an nc file; if not - load the default data ##
-    if (file_name == "israel_caves-2024.nc") {
+    if (file_name == "israel_caves-2025.nc") {
         file_path <- system.file("extdata", file_name, package = "ICCP")
     } else {
         file_path <- file_name
