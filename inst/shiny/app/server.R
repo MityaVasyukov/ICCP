@@ -694,8 +694,20 @@ server <- function(input, output, session) {
                         )
 
                 # Fused output
-                    (p1 + p2 + patchwork::plot_layout(widths = c(5, 1))) &
-                    ggplot2::scale_fill_manual(values = zone_colors, na.value = zone_colors["none"])
+                    # assemble the final plot
+                    plot_obj <- (p1 + p2 + patchwork::plot_layout(widths = c(5, 1))) &
+                        ggplot2::scale_fill_manual(values = zone_colors, na.value = zone_colors["none"])
+
+                    #ggplot2::ggsave(
+                    #    filename = file.path(getwd(), "dateRangePlot.tiff"),
+                    #    plot     = plot_obj,
+                    #    device   = "tiff",
+                    #    dpi      = 300,
+                    #    width    = 12,
+                    #    height   = 6
+                    #)
+
+                    plot_obj
             })
 
 
