@@ -41,6 +41,31 @@ get_CHELSA <- function() {
             dplyr::left_join(data$caves, by = "name") %>%
             dplyr::select(name, latitude, longitude, startdate, enddate)
 
+    # Get citation from CHELSA
+        sd0 <- min(agdf$startdate)
+        ed0 <- max(agdf$enddate)
+
+        meta_tas <- Rchelsa::getMetadata(
+            var = "tas",
+            startdate = sd0,
+            enddate = ed0,
+            verbose = F
+            )
+
+        meta_pr <- Rchelsa::getMetadata(
+            var = "pr",
+            startdate = sd0,
+            enddate = ed0,
+            verbose = F
+            )
+
+        cat("\nTemperature metadata:\n")
+        print(meta_tas)
+        cat("\nPrecipitation metadata:\n")
+        print(meta_pr)
+
+        stop()
+
     # Per row chelsa data fetching function
         fetch_chelsa_data <- function(row) {
             # parameters
