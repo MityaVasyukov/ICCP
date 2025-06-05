@@ -64,8 +64,6 @@ get_CHELSA <- function() {
         cat("\nPrecipitation metadata:\n")
         print(meta_pr)
 
-        stop()
-
     # Per row chelsa data fetching function
         fetch_chelsa_data <- function(row) {
             # parameters
