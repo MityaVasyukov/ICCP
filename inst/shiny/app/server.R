@@ -764,60 +764,34 @@ server <- function(input, output, session) {
 
         ######   Data plotting   ######
             output$dataplot <- plotly::renderPlotly({
-                req(filtered_data(), final_filter_inputs())
+                req(filtered_data(), final_filter_inputs(), session$clientData$output_dataplot_width)
 
-                data <- filtered_data()
-                filters <- final_filter_inputs()
-                units <- filters$units
-                mode <- filters$selection_mode
-                line_type <- filters$line_type
-                subplot_height <- filters$subplot_height
-                variable <- filters$variable
-                showNotification(
-                    ui = "Building a plot",
-                    id = "building_plot",
-                    type = "warning",
-                    duration = NULL
+                # helpers
+                    safe_num <- function(x, fallback) {
+                        x <- suppressWarnings(as.numeric(x))
+                        if (is.na(x) || x <= 0) fallback else x
+                    }
+
+                    y_lab_for <- function(v) switch(
+                        v,
+                        "tm"  = paste("Temperature,", units),
+                        "dp"  = paste("Dew point,", units),
+                        "rh"  = "Relative humidity, %",
+                        "tas" = paste("Mean Air Temperature (CHELSA),", units),
+                        "pr"  = "Precipitation, kg/ m2 (CHELSA)",
+                        NULL
                     )
-                req(data)
-                if (is.null(data) || nrow(data) == 0) {
-                    fig <- plotly::plot_ly() %>%
-                    plotly::add_trace(
-                        x = c(0),
-                        y = c(0),
-                        type = 'scatter',
-                        mode = 'text',
-                        text = "No data available for the selected filters",
-                        textposition = 'middle center',
-                        showlegend = FALSE
-                        ) %>%
-                    plotly::layout(
-                        title = "No Data",
-                        xaxis = list(visible = FALSE),
-                        yaxis = list(visible = FALSE)
-                        )
-                    return(fig)
-                    } else {
-                        data$datetime <- as.POSIXct(data$datetime)
-                        plot_builder <- function(df, var) {
-                            varname <- switch(
-                                var,
-                                "tm" = paste("Temperature,", units),
-                                "rh" = "Relative humidity, %",
-                                "dp" = paste("Dew point,", units),
-                                "tas" = paste("Mean Air Temperature (CHELSA),", units),
-                                "pr" = "Precipitation, kg/ m2 (CHELSA)",
-                                "unknown"
-                                )
 
-                            color_aesthetic <- if (mode == "caves") "cave_name" else "zone"
-                            colors <- if (mode == "caves") cave_colors() else zone_colors()
+                    make_plotly <- function(v) {
+                        sub <- dplyr::filter(data, var == !!v)
+                        if (!nrow(sub)) return(NULL)
 
-                            plot <- ggplot2::ggplot(
-                                df %>% dplyr::filter(var == !!var),
-                                ggplot2::aes(x = datetime, y = val, color = .data[[color_aesthetic]], text = paste("Variable:", varname))
-                                ) +
+                        p <- ggplot2::ggplot(
+                                sub,
+                                ggplot2::aes(x = datetime, y = val, color = .data[[color_aesthetic]])
+                            ) +
                             ggplot2::scale_color_manual(values = colors) +
+                            ggplot2::labs(y = y_lab_for(v)) +
                             ggplot2::theme(
                                 legend.position = "none",
                                 axis.text = ggplot2::element_text(color = "black"),
@@ -825,58 +799,86 @@ server <- function(input, output, session) {
                                 panel.grid.major = ggplot2::element_line(color = "gray", linewidth = 1.5),
                                 panel.grid.minor = ggplot2::element_blank(),
                                 axis.line.y = ggplot2::element_line(linewidth = 1.5)
-                                )  +
-                            if (var == "tm") { ggplot2::ylab(paste("Temperature,", units)) }
-                            else if (var == "dp") { ggplot2::ylab(paste("Dew point,", units)) }
-                            else if (var == "rh") { ggplot2::ylab("Relative humidity, %") }
-                            else if (var == "tas") { ggplot2::ylab(paste("Mean Air Temperature (CHELSA),", units)) }
-                            else if (var == "pr") { ggplot2::ylab("Precipitation, kg/ m2 (CHELSA)") }
-                            else { ggplot2::ylab("Variable") }
-
-                            if ("line" %in% line_type) {
-                                plot <- plot + ggplot2::geom_line()
-                                }
-                            if ("smooth" %in% line_type) {
-                                plot <- plot + ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))
-                                }
-
-                            plotly::ggplotly(plot, dynamicTicks = TRUE, height = subplot_height)
-                            }
-
-                        plots <- lapply(variable, function(var) plot_builder(data, var))
-                        fig <- plotly::subplot(
-                            plots,
-                            nrows = length(plots),
-                            titleY = TRUE,
-                            titleX = FALSE,
-                            shareX = TRUE
-                            ) %>%
-                            plotly::layout(
-                            xaxis = list(
-                                type = 'date',
-                                showgrid = FALSE,
-                                #rangeslider = list(visible = T),
-                                rangeselector=list(
-                                    buttons=list(
-                                        list(count=1, label="1d", step="day", stepmode="todate"),
-                                        list(count=7, label="7d", step="day", stepmode="todate"),
-                                        list(count=1, label="1m", step="month", stepmode="todate"),
-                                        list(count=3, label="3m", step="month", stepmode="todate"),
-                                        list(count=6, label="6m", step="month", stepmode="todate"),
-                                        list(count=1, label="1y", step="year", stepmode="todate"),
-                                        list(step="all")
-                                        )
-                                    )
-                                ),
-                            yaxis = list(showgrid = TRUE, title = list(standoff = 20)),
-                            plot_bgcolor = '#ffffff'
                             )
-                        
-                        removeNotification("building_plot")
-                        return(fig)
 
-                        }
-                })
+                        if ("line" %in% line_type) p <- p + ggplot2::geom_line()
+                        if ("smooth" %in% line_type) p <- p + ggplot2::geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"))
+
+                        plotly::ggplotly(p, dynamicTicks = TRUE, width = width_each, height = h_each)
+                    }
+
+                filters <- final_filter_inputs()
+                data <- filtered_data()
+                validate(need(nrow(data) > 0, "No data available for the selection"))
+
+                width_each <- safe_num(session$clientData$output_dataplot_width, 800)
+                h_each     <- safe_num(filters$subplot_height, 200)
+                pad        <- 40
+                variables  <- filters$variable %||% character(0)
+                mode       <- filters$selection_mode
+                line_type  <- filters$line_type
+                units      <- filters$units
+
+                showNotification(
+                    ui = "Building plot",
+                    id = "building_plot",
+                    type = "warning",
+                    duration = NULL
+                )
+                on.exit(removeNotification("building_plot"), add = TRUE)
+
+                data$datetime <- as.POSIXct(data$datetime)
+
+                color_aesthetic <- if (mode == "caves") "cave_name" else "zone"
+                colors          <- if (mode == "caves") cave_colors() else zone_colors()
+
+                plots_plotly <- Filter(Negate(is.null), lapply(variables, make_plotly))
+                if (!length(plots_plotly)) {
+                    return(plotly::plot_ly() %>% plotly::layout(title = "No data after filtering"))
+                }
+
+                n_rows <- length(plots_plotly)
+
+                fig <- plotly::subplot(
+                        plots_plotly,
+                        nrows = n_rows,
+                        shareX = TRUE,
+                        titleY = TRUE,
+                        titleX = FALSE,
+                        heights = rep(1 / n_rows, n_rows),
+                        margin = 0.02
+                    ) %>%
+                    plotly::layout(
+                        xaxis = list(
+                            type = "date",
+                            showgrid = FALSE,
+                            rangeselector = list(
+                                buttons = list(
+                                    list(count=1, label="1d", step="day",   stepmode="todate"),
+                                    list(count=7, label="7d", step="day",   stepmode="todate"),
+                                    list(count=1, label="1m", step="month", stepmode="todate"),
+                                    list(count=3, label="3m", step="month", stepmode="todate"),
+                                    list(count=6, label="6m", step="month", stepmode="todate"),
+                                    list(count=1, label="1y", step="year",  stepmode="todate"),
+                                    list(step="all")
+                                )
+                            )
+                        ),
+                        yaxis = list(showgrid = TRUE, title = list(standoff = 20)),
+                        plot_bgcolor = "#ffffff"
+                    ) %>%
+                    plotly::config(responsive = TRUE)
+
+                    fig
+            })
+
+            output$dataplot_container <- renderUI({
+                req(final_filter_inputs())
+                h_each <- suppressWarnings(as.numeric(final_filter_inputs()$subplot_height))
+                if (is.na(h_each) || h_each <= 0) h_each <- 200
+                pad <- 40
+                plotly::plotlyOutput("dataplot", height = paste0(h_each + pad, "px"))
+            })
 
         ######   Summary data   ######
             output$sum <- renderPrint({

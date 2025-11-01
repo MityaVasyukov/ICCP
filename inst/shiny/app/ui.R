@@ -270,164 +270,194 @@ ui <- shinydashboard::dashboardPage(
                     ))
                 ),
             tags$style(HTML("
-            .pending-changes {
-                background-color: #dc3545 !important;
-                color: white !important;
-                border-color: #dc3545 !important;
+                .main-sidebar {
+                    position: fixed;
+                    height: 100vh;
+                    overflow: auto;
+                    }
+                .main-header {
+                    height: 50px !important;
+                    margin-bottom: 0 !important;
+                    position: fixed;
+                    width: 100vw;
+                    }
+                .navbar-custom-menu {
+                    float: left !important;
+                    min-width: 93%;
+                    }
+                .navbar-nav {
+                    float: left !important;
+                    display: flex !important;
+                    flex-wrap: nowrap !important;
+                    justify-content: space-between !important;
+                    width: 100% !important;
+                    }
+                .navbar-custom-menu > .navbar-nav > li {
+                    display: flex;
+                    align-items: center;
+                    }
+                #nav-button_filter .btn, #nav-button_reload .btn {
+                    border-radius: 50% !important;
+                    font-size: 12px !important;
+                    width: 30px !important;
+                    height: 30px !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    padding: 0 !important;
+                    margin: 0 10px !important;
+                    }
+
+                #plotHeaderContainer {
+                    background: none;
+                    border: none;
+                    box-shadow: none;
+                    line-height: 50px;
+                    padding: 0 15px;
+                    margin-left: auto;
+                    justify-content: right;
+                    flex-grow: 3;
+                    margin-right: 10px;
+                    }
+                #plotHeader {
+                    height: 38px;
+                    min-width: 150px;
+                    padding: 0 10px;
+                    margin: 6px 0 4px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    font-size: 16px;
+                    border-radius: 5px;
+                    box-shadow: 1px 1px 5px #555 inset;
+                    background-color: white;
                 }
-            dropdown .action-button{
-                padding: 0 !important;
-                margin: 0 auto !important;
-                padding-top: 10px !important;
+
+                .box {
+                    margin-bottom: 0;
+                    }
+
+                #firstRow {
+                    padding-top: 50px;
+                    }
+                #firstRow > .shiny-panel-conditional {
+                    display: flex !important;
+                    gap: 12px;
+                    align-items: stretch;
+                    justify-content: space-between;
+                    width: 100%;
+                    }
+                #firstRow > .shiny-panel-conditional > div {
+                    float: none !important;
+                    width: auto !important;
+                    flex: 1 1 50%;
+                    min-width: 0;
+                    display: flex;
+                    }
+                #firstRow .box {
+                    display: flex;
+                    flex-direction: column;
+                    margin: 0;
+                    height: 40vh;
+                    min-height: 320px;
+                    }
+                #firstRow .box-body {
+                    flex: 1 1 auto;
+                    min-height: 0;
+                    }
+                #mapCol, #metadataCol {
+                    flex: 1 1 auto;
+                    display: flex;
+                    flex-direction: column;
+                    min-height: 0;
+                    padding: 5%;
+                    }
+                #map {
+                    height: 100% !important;
+                    width: 100% !important;
+                    }
+                #map > .leaflet-container {
+                    height: 100% !important;
+                    width: 100% !important;
                 }
-            .main-sidebar {
-                position: fixed;
-                height: 100vh;
-                overflow: auto;
-                }
-            .navbar-custom-menu > .navbar-nav > li {
-                display: flex;
-                align-items: center;
-                }
-            .main-header {
-                height: 50px !important;
-                margin-bottom: 0 !important;
-                position: fixed;
-                width: 100vw;
-                }
-            .navbar-custom-menu {
-                float: left !important;
-                min-width: 93%;
-                }
-            .navbar-nav {
-                float: left !important;
-                display: flex !important;
-                flex-wrap: nowrap !important;
-                justify-content: space-between !important;
-                width: 100% !important;
-                }
-            li {
-                font-size: 15px;
-                padding: 0 !important;
-                padding-top: 15px;
-                padding-bottom: 15px;
-                }
-            #nav-button_filter .btn,
-            #nav-button_reload .btn  {
-                border-radius: 50% !important; 
-                font-size: 12px !important;
-                width: 30px !important;
-                height: 30px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                padding: 0 !important;
-                margin: 0 10px !important;
-                }
-            #plotHeaderContainer  {
-                background: none;
-                border: none;
-                box-shadow: none;
-                line-height: 50px;
-                padding: 0 15px;
-                margin-left: auto;
-                justify-content: right;
-                flex-grow: 3;
-                margin-right: 10px;
-                }
-            #plotHeader {
-                height: 38px;
-                width: fit-content;
-                min-width: 150px;
-                padding-left: 10px;
-                padding-right: 10px;
-                margin-top: 6px;
-                margin-bottom: 4px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                font-size: 16px;
-                border-radius: 5px;
-                box-shadow: 1px 1px 5px #555 inset;
-                background-color: white;
-                }
-            .box {
-                margin-bottom: 0;
-                }
-            .fluidRow {
-                display: flex;
-                height: auto !important;
-                }
-            .leaflet {
-                height: 100% !important;
-                }
-            .box-body {
-                height: 100%;
-                }
-            #firstRow {
-                padding-top: 50px;
-                }
-            #secondRow, #thirdRow, #fourthRow {
-                margin-top: 20px;
-                }
-            #thirdRow {
-                display: flex;
-                width: 100%;
-                flex-grow: 1;
-                flex-direction: column;
-                height: auto !important;
-                }
-            #fourthRow {
-                flex-grow: 1;
-                display: flex;
-                flex-direction: column;
-                }
-            #plot {
-                width: 100%;
-                height: auto !important;
-                }
-            #rangePlot {
-                height: 600px
-                }
-            #metadataCol {
-                overflow: auto;
-                resize: both;
-                }
-            .sidebar-menu .fas + span,
-            .sidebar-menu .far + span {
-                margin-left: 6px;
-                }          
-            .form-group, .data_button {
-                padding: 0 !important;
-                width: 80% !important;
-                margin-left: 10% !important;
-                }
-            .sidebar-menu li.treeview ul.treeview-menu > .form-group:first-of-type {
-                padding-top: 15px !important;
-                }
-            .sidebar-menu li.treeview ul.treeview-menu > .form-group:last-of-type {
-                padding-bottom: 15px !important;
-                }
-            #height.form-control {
-            border-radius: 4px !important;
-            }
-         ")),
+                #metadataCol > .html-widget {
+                    flex: 1 1 auto;
+                    min-height: 0;
+                    }
+                #metadataCol .dataTables_wrapper, 
+                #metadataCol .dataTables_scrollBody {
+                    height: 100% !important;
+                    }
+                #metadataCol .dataTables_scrollBody {
+                    overflow: auto !important;
+                    }
+                #metadataCol {
+                    overflow: auto;
+                    resize: both;
+                    }
+
+                #secondRow, #thirdRow, #fourthRow {
+                    margin-top: 20px;
+                    }
+                #thirdRow {
+                    display: block;
+                    width: auto;
+                    height: auto !important;
+                    }
+                #fourthRow {
+                    flex-grow: 1;
+                    display: flex;
+                    flex-direction: column;
+                    }
+                #plot {
+                    width: 100%;
+                    height: auto !important;
+                    }
+                #plot .box-body {
+                    height: auto !important;
+                    min-height: 0 !important;
+                    overflow: visible !important;
+                    display: block !important;
+                    }
+                #rangePlot {
+                    height: 600px;
+                    }
+
+                .pending-changes {
+                    background-color: #dc3545 !important;
+                    color: white !important;
+                    border-color: #dc3545 !important;
+                    }
+                .form-group, .data_button {
+                    padding: 0 !important;
+                    width: 80% !important;
+                    margin-left: 10% !important;
+                    }
+                .sidebar-menu li.treeview ul.treeview-menu > .form-group:first-of-type {
+                    padding-top: 15px !important;
+                    }
+                .sidebar-menu li.treeview ul.treeview-menu > .form-group:last-of-type {
+                    padding-bottom: 15px !important;
+                    }
+                #height.form-control {
+                    border-radius: 4px !important;
+                    }
+            ")),
         tabName = "data",
         fluidRow(id = "firstRow",
             conditionalPanel(
                 condition = "input.show_1Row",
                 class = "fluidRow",
+                width = 12,
                 shinydashboard::box(
                     id = "mapCol",
                     width = 6,
-                    height = "100%",
-                    leaflet::leafletOutput("map")
+                    leaflet::leafletOutput("map", height = "100%")
                     ),
                 shinydashboard::box(
                     id = "metadataCol",
                     width = 6,
-                    height = "100%",
-                    DT::DTOutput("metadata_table")
+                    DT::DTOutput("metadata_table", height = "100%")
                     )
                 )   
             ),
@@ -451,7 +481,7 @@ ui <- shinydashboard::dashboardPage(
                     width = 12,
                     style = "height: auto;",
                     shinycssloaders::withSpinner(
-                        plotly::plotlyOutput("dataplot", height = "auto"),
+                        uiOutput("dataplot_container"),
                         type = 7,
                         color.background = "#FFFFFF",
                         hide.ui = FALSE
