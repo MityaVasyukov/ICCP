@@ -69,7 +69,7 @@ get_CHELSA <- function() {
             # parameters
                 coordinates <- data.frame(row$longitude, row$latitude)
                 startdate <- row$startdate
-                enddate <- row$enddate
+                enddate <- row$enddateBYZ
 
             # average daily temperature
                 tas <- Rchelsa::getChelsa(

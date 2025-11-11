@@ -1,11 +1,11 @@
 id	filename	Artist	Caption	Date
-1	001_Nahal_Hemar.jpg	B. Langford	The entrance to Nahal Hemar Cave, looking southwest. The opening is seen in the vertical cliff on the central right side of the photo.	2013
-2	002_Nahal_Hemar.jpg	B. Langford	The main chamber of Nahal Hemar Cave.	2013
+1	001_Hemar.jpg	B. Langford	The entrance to Hemar Cave, looking southwest. The opening is seen in the vertical cliff on the central right side of the photo.	2013
+2	002_Hemar.jpg	B. Langford	The main chamber of Hemar Cave.	2013
 3	003_Horror.jpg	B. Langford	The entrance of the Horror Cave, looking northeast. The photo was taken from within the cave;the sheer cliffs of the northern bank of Nahal Hever in the background.	2013
 4	004_Har_Sifsof.jpg	M. Ullman	The entrance of Har Sifsof Cave, looking south, with Mt. Meron in the background. The small vertical cave entrance is concealed between the bowlders, at the low right side of the photo. Note the Mediterranean maquis vegetation.	2022
 5	005_Har_Sifsof.jpg	M. Ullman	Har Sifsof Cave, stalagmites and stalactites in Chamber D.	2020
-6	006_Murbaat_2.jpg	R. Porat	The entrance of Murba'at Cave 1 (right side of the photo) and Murba'at Cave 2 (left side of the photo), looking north.	2019
-7	007_Murbaat_2.jpg	R. Porat	One of the inner chambers at Murba'at Cave 2. The cave is dry and dusty, making it difficult to shoot photos while surveying it.	2019
+6	006_Murabba'at_2.jpg	R. Porat	The entrance of Murabba'at Cave 1 (right side of the photo) and Murabba'at Cave 2 (left side of the photo), looking north.	2019
+7	007_Murabba'at_2.jpg	R. Porat	One of the inner chambers at Murabba'at Cave 2. The cave is dry and dusty, making it difficult to shoot photos while surveying it.	2019
 8	008_Pitriya.jpg	B. Langford	The main entrance of the Pitriya Cave, looking east.	2023
 9	009_Pitriya.jpg	B. Langford	Pitriya Cave, Chamber C. This segment of the cave is dry and dusty.	2023
 10	010_Pitriya.jpg	B. Langford	One of the inner, wet, and muddy, segments of the Pitriya Cave.	2023
@@ -15,41 +15,41 @@ id	filename	Artist	Caption	Date
 14	014_Qina.jpg	B. Langford	The west bank of Nahal Qina, the two entrances of Qina Cave are marked by white arrows.	2013
 15	015_Qina.jpg	B. Langford	Hyena-induced bone collection in segment X-Y of Qina Cave.	2013
 16	016_Qina.jpg	B. Langford	A low passage in Segment B, Qina Cave.	2013
-17	017_Sela.jpg	R. Porat	The entrances of Sela Cave, looking east.	2019
-18	018_Sela.jpg	M. Ullman	Hyena bone collection in the southern passage of Sela Cave (unmapped).	2020
-19	019_Sela.jpg	M. Ullman	Chamber C in Sela Cave.	2020
+17	017_Sela'.jpg	R. Porat	The entrances of Sela' Cave, looking east.	2019
+18	018_Sela'.jpg	M. Ullman	Hyena bone collection in the southern passage of Sela' Cave (unmapped).	2020
+19	019_Sela'.jpg	M. Ullman	Chamber C in Sela' Cave.	2020
 20	020_Skulls.jpg	B. Langford	The Cave Complex in Nahal Ze'elim, looking north. The double openings at the center of the photo are the entrances of the Skulls Cave.	2017
 21	021_Skulls.jpg	R. Porat	The main chamber (Chamber D) at the Cave of Skulls Cave, during excavation.	2016
 22	022_Tzruya.jpg	R. Porat	The front chamber of Tzurya Cave, looking southeast.	2019
-23	023_Ureide.jpg	R. Porat	The main entrance (center of the photo) and the secondary entrance (right side of the photo) of the main cave in the Ureide Complex, looking east.	2019
-24	024_Ureide.jpg	R. Porat	The main chamber in Ureide Cave.	2019
-25	025_Ureide.jpg	R. Porat	The main chamber in Ureide Cave.	2019
-26	026_Teomim.jpg	M. Ullman	The entrance of the Te'omim Cave, looking north.	2024
-27	027_Teomim.jpg	B. Langford	Stalagmites and stalactites at the main chamber of the Te'omim Cave.	2022
-28	028_Teomim.jpg	B. Langford	The hewn pool in the Te'omim Cave. The pool fills up from constant dripping of water from the cave ceiling and walls.	2009
+23	023_Ureideh.jpg	R. Porat	The main entrance (center of the photo) and the secondary entrance (right side of the photo) of the main cave in the Ureideh Complex, looking east.	2019
+24	024_Ureideh.jpg	R. Porat	The main chamber in Ureideh Cave.	2019
+25	025_Ureideh.jpg	R. Porat	The main chamber in Ureideh Cave.	2019
+26	026_Te'omim.jpg	M. Ullman	The entrance of the Te'omim Cave, looking north.	2024
+27	027_Te'omim.jpg	B. Langford	Stalagmites and stalactites at the main chamber of the Te'omim Cave.	2022
+28	028_Te'omim.jpg	B. Langford	The hewn pool in the Te'omim Cave. The pool fills up from constant dripping of water from the cave ceiling and walls.	2009
 29	029_Har_Sifsof.jpg	B. Langford	Rappelling down Shaft B, into the main level of Har Sifsof Cave.	2016
 30	030_Har_Sifsof.jpg	B. Langford	Watter-dripping speleothems at the main level of Har Sifsof Cave.	2016
 31	031_Har_Sifsof.jpg	B. Langford	Speleothems at the upper level (Area R) of Har Sifsof Cave.	2016
 32	032_Har_Sifsof.jpg	V. Boslov	The entrance of Har Sifsof Cave, looking north.	2016
-33	033_Nahal_Hemar.jpg	B. Langford	The Nahal Hemar Cave opening, looking southwest.	2013
-34	034_Nahal_Hemar.jpg	B. Langford	The main chamber of Nahal Hemar Cave.	2008
+33	033_Hemar.jpg	B. Langford	    Hemar Cave opening, looking southwest.	2013
+34	034_Hemar.jpg	B. Langford	The main chamber of Hemar Cave.	2008
 35	035_Horror.jpg	B. Langford	The Cave of Horror's main chamber, looking southwest.	2013
 36	036_Horror.jpg	R. Porat	An ancient stone wall, constructed at the upper level of the Cave of Horror.	2013
-37	037_Murbaat_2.jpg	R. Porat	The entrance of Murbba'at I Cave (right side of the photo) and Murbba'at II Cave (left side of the photo), looking north.	2016
+37	037_Murabba'at_2.jpg	R. Porat	The entrance of Murabba'at Cave 1 (right side of the photo) and Murabba'at Cave 2 (left side of the photo), looking north.	2016
 38	038_Pitriya.jpg	B. Langford	An inner chamber at Pitriya Cave.	2017
 39	039_Pool.jpg	R. Porat	The view looking southeast from the entrance of the Cave of the Pool.	2016
 40	040_Qina.jpg	B. Langford	An inner segment of Qina Cave.	2013
 41	041_Qina.jpg	B. Langford	An inner segment (Chamber K) of Qina Cave.	2013
 42	042_Qina.jpg	B. Langford	The northern entrance to Qina Cave.	2013
-43	043_Sela.jpg	M. Ullman	Dry speleothems at the southern passage of Sela Cave (unmapped).	2020
-44	044_Sela.jpg	M. Ullman	Sela Cave.	2020
-45	045_Sela.jpg	V. Boslov	A narrow passage at the main level of Sela Cave.	2008
+43	043_Sela'.jpg	M. Ullman	Dry speleothems at the southern passage of Sela' Cave (unmapped).	2020
+44	044_Sela'.jpg	M. Ullman	Sela' Cave.	2020
+45	045_Sela'.jpg	V. Boslov	A narrow passage at the main level of Sela' Cave.	2008
 46	046_Skulls.jpg	M. Ullman	The northern section at Area H2 in the Cave of Skulls, looking northwest.	2019
 48	048_Skulls.jpg	R. Porat	The Cave of Skulls main opening, looking southeast.	2016
 49	049_Skulls.jpg	R. Porat	Chamber G of the Cave of Skulls during excavation, looking southeast.	2016
 50	050_Skulls.jpg	R. Porat	The main chamber (Chamber D) at the Cave of Skulls during excavation, looking northwest.	2016
-51	051_Teomim.jpg	R. Porat	The entrance of the Te'omim Cave, looking south.	2009
-52	052_Teomim.jpg	R. Porat	The entrance of the Te'omim Cave, looking north.	2009
+51	051_Te'omim.jpg	R. Porat	The entrance of the Te'omim Cave, looking south.	2009
+52	052_Te'omim.jpg	R. Porat	The entrance of the Te'omim Cave, looking north.	2009
 53	053_Tzruya.jpg	R. Porat	The main chamber of Tzruya Cave, looking south.         	2009
-54	054_Ureide.jpg	R. Porat	The main entrance of the main cave of the Ureideh Complex, looking southwest.	2016
-55	055_Ureide.jpg	R. Porat	The main chamber of Ureideh Cave.                	2016
+54	054_Ureideh.jpg	R. Porat	The main entrance of the main cave of the Ureideh Complex, looking southwest.	2016
+55	055_Ureideh.jpg	R. Porat	The main chamber of Ureideh Cave.                	2016

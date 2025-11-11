@@ -117,7 +117,7 @@ variables:
 	NC_STRING Occupation_Periods(cave) ;
 		NC_CHAR Occupation_Periods:long_name = "List of identified periods of human activity in the cave" ;
 		NC_CHAR Occupation_Periods:coverage_content_type = "auxiliaryInformation" ;
-		NC_STRING Occupation_Periods:time_periods_vocabulary = "Epi: Epi Palaeolithic (23000-11500 BP), PPN: Pre-pottery Neolithic (9500-6500 BC), PN: Pottery Neolithic (6500-5600 BC), LC: Late Chalcolithic (4500-3700 BC), EBA: Early Bronze Age (3700-2450 BC), IBA: Intermediate Bronze Age (2450-1950 BC), MBA: Middle" ;
+		NC_STRING Occupation_Periods:time_periods_vocabulary = "Epi: Epi Palaeolithic (23000-11500 BP); PPN: Pre-pottery Neolithic (9500-6500 BC); PN: Pottery Neolithic (6500-4500 BC); LC: Late Chalcolithic (4500-3700 BC); EBA: Early Bronze Age (3700-2450 BC); IBA: Intermediate Bronze Age (2450-1950 BC); MBA: Middle and Late Bronze Age (1950–1140 BC); IA: Iron Age (1140–586 BC); PER-HEL: Persian-Hellenistic (586–63 BC); ROM-BYZ: Roman-Byzantine (63 BC–628 AD); ISL: Islamic (628–1917 AD)" ;
 	NC_BYTE Logger_Number_in_Cave(logger) ;
 		NC_CHAR Logger_Number_in_Cave:long_name = "The sequential number of logger set in a certain cave" ;
 		NC_CHAR Logger_Number_in_Cave:coverage_content_type = "auxiliaryInformation" ;
@@ -160,17 +160,17 @@ variables:
 		NC_CHAR Logger_Longitude:grid_mapping = "crs" ;
 
 // global attributes:
-		NC_CHAR :id = "10.5281/zenodo.15597125" ;
+		NC_CHAR :id = "10.5281/zenodo.17505739" ;
 		NC_CHAR :naming_authority = "Zenodo: zenodo.org" ;
 		NC_CHAR :title = "Israel Cave Climate Project (ICCP)" ;
-		NC_CHAR :summary = "Current dataset presents the current state of The Israel Cave Climate Project (ICCP) and provides high-resolution microclimatic data from twelve caves across three climate zones— Hyper-Arid Desert, Steppe, and Mediterranean—all measured during a similar time frame in 2019—2021 using a uniform protocol. All twelve are natural karstic caves containing diverse, rich, and typically multi-period archaeological records. Within each cave, hourly air temperature and relative humidity measurements were recorded over a year or so. The physical and speleological characteristics of the studied caves and the content and nature of their archaeological records are detailed." ;
+		NC_CHAR :summary = "The current dataset represents the Israel Cave Climate Project (ICCP) as of 2025 and provides hourly microclimatic data from twelve caves located across Mediterranean, steppe, and desert climate zones. Temperature and relative humidity were recorded continuously from September 2019 to August 2021. Each cave dataset includes measurements from multiple loggers." ;
 		NC_CHAR :source = "surface observation" ;
 		NC_CHAR :creator_type = "Research collective" ;
 		NC_CHAR :creator_name = "Micka Ullman; Mitya Kletzerman; Assaf Oron; Roee Porat; Boaz Langford; Amos Frumkin; Yitzchak Jaffe; Uri Davidovich; Nimrod Marom" ;
 		NC_CHAR :creator_email = "tipa2128506@gmail.com" ;
 		NC_CHAR :creator_institution = "Haifa University" ;
 		NC_CHAR :creator_url = "https://www.haifa.ac.il" ;
-		NC_CHAR :date_created = "2025-06-05 00:35:06 UTC" ;
+		NC_CHAR :date_created = "2025-11-11 08:41:57 UTC" ;
 		NC_CHAR :featureType = "points" ;
 		NC_CHAR :instrument = "MX2302A, HOBO External Temperature/RH Sensor Data Logger, Onset Computer Corp." ;
 		NC_CHAR :processing_level = "see history attribute" ;
@@ -180,7 +180,7 @@ variables:
 		NC_FLOAT :geospatial_lat_max = 33.0088500976562 ;
 		NC_FLOAT :geospatial_lon_min = 35.0206298828125 ;
 		NC_FLOAT :geospatial_lon_max = 35.4264717102051 ;
-		NC_STRING :keywords = "GCMD: GEOSCIENCES > SOLID EARTH > KARST, GCMD: EARTH SCIENCE > CLIMATE INDICATORS, GCMD: EARTH SCIENCE > ATMOSPHERE > AIR TEMPERATURE, GCMD: EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC TEMPERATURE > DEW POINT TEMPERATURE, GCMD: EARTH SCIENCE > ATMOSPHERE > HUMIDITY > RELATIVE HUMIDITY" ;
+		NC_STRING :keywords = "GCMD: GEOSCIENCES > SOLID EARTH > KARST; GCMD: EARTH SCIENCE > CLIMATE INDICATORS; GCMD: EARTH SCIENCE > ATMOSPHERE > AIR TEMPERATURE; GCMD: EARTH SCIENCE > ATMOSPHERE > ATMOSPHERIC TEMPERATURE > DEW POINT TEMPERATURE; GCMD: EARTH SCIENCE > ATMOSPHERE > HUMIDITY > RELATIVE HUMIDITY" ;
 		NC_STRING :keywords_vocabulary = "GCMD: NASA/GCMD Earth Science Keywords: https://www.earthdata.nasa.gov/learn/find-data/idn/gcmd-keywords" ;
 		NC_CHAR :institution = "Haifa University" ;
 		NC_CHAR :publisher_name = "Mitya Kletzerman" ;
@@ -190,10 +190,3 @@ variables:
 		NC_STRING :history = "None" ;
 		NC_STRING :acknowledgement = "None" ;
 }
-2025-06-05 03:35:07 	 Info 	 logging ended 
-
-Script execution time: 35.173 seconds
-
-
-
-

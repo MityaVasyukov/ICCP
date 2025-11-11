@@ -120,20 +120,19 @@ server <- function(input, output, session) {
         ######   Dictionaries   ######
             abbreviations <- list(
                 "Epi" = "Epipaleolithic",
-                "PPN" = "Pre_Pottery Neolithic",
-                "PN" = "Pottery Neolithic",
-                "LC" = "Late Chalcolithic",
+                "PPN" = "Pre-Pottery Neolithic",
+                "PN"  = "Pottery Neolithic",
+                "LC"  = "Late Chalcolithic",
                 "EBA" = "Early Bronze Age",
                 "IBA" = "Intermediate Bronze Age",
                 "MBA" = "Middle Bronze Age",
                 "LBA" = "Late Bronze Age",
-                "IA" = "Iron Age",
+                "IA"  = "Iron Age",
                 "PER" = "Persian Period",
                 "HEL" = "Hellenistic Period",
                 "ROM" = "Roman Period",
                 "BYZ" = "Byzantine Period",
-                "MAM" = "Mamluk Period",
-                "OTT" = "Ottoman Period"
+                "ISL" = "Islamic Period"
                 )
 
         ######   UIUX rules   ######
@@ -1090,19 +1089,6 @@ server <- function(input, output, session) {
                 )
 
     #####   OBSERVERS   #####
-
-        ######   'Selected caves' dynamic updating   ######
-            # DOESNT WORK AS EXPECTED, - REMOVE OR ADJUST
-            #observeEvent(input$add_cave, {
-            #    current_caves <- trimws(selected_caves())
-            #    new_cave <- trimws(input$add_cave)
-
-            #    if (!new_cave %in% current_caves) { 
-            #        selected_caves(c(current_caves, new_cave))
-            #        updateSelectInput(session, "cave",  selected = selected_caves())
-            #        }
-            #    })
-
         ######   Button observers   ######
             observeEvent(input$view_description1, {
                 file_path <- system.file("extdata", "israel_caves-2025.txt", package = "ICCP")
